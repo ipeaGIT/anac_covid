@@ -7,7 +7,7 @@ files <- list.files(path = '../../data-raw/ANAC/', pattern = 'combinada', full.n
 # files <- grep(pattern = '-01|-02|-03|-04', x = files, value = TRUE)
 combinada <- lapply(files, fread) %>% rbindlist()
 
-data_cols <- combinada %>% select(id_combinada, 
+data_cols <- combinada %>% dplyr::select(id_combinada, 
                                   nr_voo, sg_empresa_icao,
                                   hr_partida_real, dt_partida_real, sg_icao_origem,
                                   nm_municipio_origem, sg_uf_origem, nm_pais_origem, 
