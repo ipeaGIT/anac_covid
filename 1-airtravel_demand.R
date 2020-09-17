@@ -4,7 +4,7 @@ source("../../git_kaue/acesso_oport/R/fun/setup.R")
 # usar combinada! ----------------------------------------------
 
 files <- list.files(path = '../../data-raw/ANAC/', pattern = 'combinada', full.names = T)
-# files <- grep(pattern = '-01|-02|-03|-04', x = files, value = TRUE)
+files <- grep(pattern = '-01|-02|-03|-04|-05|-06|-07', x = files, value = TRUE)
 combinada <- lapply(files, fread) %>% rbindlist()
 
 data_cols <- combinada %>% dplyr::select(id_combinada, 
