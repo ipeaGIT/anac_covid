@@ -1,3 +1,4 @@
+
 # combinada
 linkc <- "https://www.anac.gov.br/assuntos/setor-regulado/empresas/envio-de-informacoes/microdados/combinada2020-01.zip"
 
@@ -9,10 +10,10 @@ dir.create("data-raw")
 dir.create("data-raw/anac")
 
 fixed_url <- "https://www.anac.gov.br/assuntos/setor-regulado/empresas/envio-de-informacoes/microdados/"
-month <- paste0("basica",rep(2019:2020,each = 5),"-0",rep(1:5,2))
+month <- paste0("basica",rep(2019:2020,each = 7),"-0",rep(1:7,2))
 full_url <- paste0(fixed_url,month,".zip")
 
-for(i in c(1,6)){
+for(i in c(7,14)){ # i = 7
   message(i)
   download.file(url = full_url[i],destfile = paste0('data-raw/anac/',month[i],'.zip'))
   unzip(zipfile =  paste0('data-raw/anac/',month[i],'.zip'),exdir = 'data-raw/anac/')
