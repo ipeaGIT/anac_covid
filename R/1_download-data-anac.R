@@ -1,7 +1,3 @@
-
-# combinada
-linkc <- "https://www.anac.gov.br/assuntos/setor-regulado/empresas/envio-de-informacoes/microdados/combinada2020-01.zip"
-
 #
 # download data
 #
@@ -9,17 +5,29 @@ linkc <- "https://www.anac.gov.br/assuntos/setor-regulado/empresas/envio-de-info
 dir.create("data-raw")
 dir.create("data-raw/anac")
 
+# combinada
 fixed_url <- "https://www.anac.gov.br/assuntos/setor-regulado/empresas/envio-de-informacoes/microdados/"
-month <- paste0("basica",rep(2019:2020,each = 7),"-0",rep(1:7,2))
-full_url <- paste0(fixed_url,month,".zip")
 
-for(i in c(7,14)){ # i = 7
-  message(i)
-  download.file(url = full_url[i],destfile = paste0('data-raw/anac/',month[i],'.zip'))
-  unzip(zipfile =  paste0('data-raw/anac/',month[i],'.zip'),exdir = 'data-raw/anac/')
+range_years <- 2017:2020
+range_months <- 1:7       # jan-jul
+month_basic <- paste0("basica",rep(range_years,each = length(range_months)),"-0",rep(range_months,length(range_years)))
+month_comb <- paste0("combinada",rep(range_years,each = length(range_months)),"-0",rep(range_months,length(range_years)))
+# full link
+url_basic <- paste0(fixed_url,month_basic,".zip")
+url_comb <- paste0(fixed_url,month_comb,".zip")
+# test link
+url_basic
+
+url_comb
+
+for(i in 1:length(url_basic)){ # i means months
+  # download basico
+  message(month_basic[i])
+  download.file(url = url_basic[i],destfile = paste0('data-raw/anac/',month_basic[i],'.zip'))
+  unzip(zipfile =  paste0('data-raw/anac/',month_basic[i],'.zip'),exdir = 'data-raw/anac/')
+  
+  # download combinada
+  message(month_comb[i])
+  download.file(url = url_comb[i],destfile = paste0('data-raw/anac/',month_comb[i],'.zip'))
+  unzip(zipfile =  paste0('data-raw/anac/',month_comb[i],'.zip'),exdir = 'data-raw/anac/')
 }
-
-# 
-i = 10
-download.file(url = paste0(fixed_url,"basica202006.zip"),destfile = paste0('data-raw/anac/',month[i],'.zip'))
-unzip(zipfile =  paste0('data-raw/anac/',month[i],'.zip'),exdir = 'data-raw/anac/')
