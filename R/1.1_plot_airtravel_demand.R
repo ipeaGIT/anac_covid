@@ -93,8 +93,7 @@ t$international <- factor(t$international, levels=c('inbound','outbound','nation
                           labels=c('International inbound','International outbound','National'))
 
 # export
-t_export <- t %>% filter(year == 2020) %>% select(-xx)
-fwrite(t_export, "data/output/output_publish/air_totalpass_fig3.csv")
+fwrite(t, "./outputs/air_totalpass_fig3.csv")
 
 
 
