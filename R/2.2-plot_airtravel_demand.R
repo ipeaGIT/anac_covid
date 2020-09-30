@@ -1,75 +1,17 @@
 source("../../git_kaue/acesso_oport/R/fun/setup.R")
 
 
-# usar combinada! ----------------------------------------------
-
-files <- list.files(path = '../../data-raw/ANAC/', pattern = 'combinada', full.names = T)
-files <- grep(pattern = '-01|-02|-03|-04|-05|-06|-07', x = files, value = TRUE)
-combinada <- lapply(files, fread) %>% rbindlist()
-
-data_cols <- combinada %>% dplyr::select(id_combinada, 
-                                  nr_voo, sg_empresa_icao,
-                                  hr_partida_real, dt_partida_real, sg_icao_origem,
-                                  nm_municipio_origem, sg_uf_origem, nm_pais_origem, 
-                                  hr_chegada_real, dt_chegada_real,
-                                  sg_icao_destino, nm_municipio_destino, sg_uf_destino, nm_pais_destino,
-                                  nr_escala_destino,
-                                  ds_cotran, nr_passag_pagos, nr_passag_gratis)
-
-# set locale to english to convert weeknames
-Sys.setlocale("LC_ALL","English")
-
-gc(reset = T)
-
-prop.table(table(combinada$ds_tipo_empresa)) %>% View()
-
-
-######################################### dt ------------------------------
-# rename columns
-setnames(data_cols, 'sg_uf_origem', 'origin')
-setnames(data_cols, 'sg_uf_destino', 'destination')
-
-# trazer paises para coluna de estados
-data_cols[, origin := fifelse(origin=="", nm_pais_origem, origin)]
-data_cols[, destination := fifelse(destination=="", nm_pais_destino, destination)]
-
-# criar coluna de datas
-data_cols[, date := lubridate::as_date(dt_chegada_real)]
-data_cols[, year := lubridate::year(date)]
-data_cols[, month := lubridate::month(date)]
-data_cols[, day := lubridate::day(date)]
-data_cols[, day_week := lubridate::wday(date, label = TRUE)]
-
-
-# sum number of passangers
-odmatrix_uf <- data_cols[ds_cotran %in% c("DESEMBARQUE", ""),
-                         .(total_pass = sum(nr_passag_pagos, nr_passag_gratis, na.rm = TRUE)),
-                         by = .(origin, destination, date, year, month, day, day_week) ]
-
-
-# classify whether international flights are inbout or outbound
-odmatrix_uf[, international := fifelse(nchar(origin)==2 & nchar(destination)>2, 'outbound',
-                                       fifelse(nchar(origin)>2 & nchar(destination)==2, 'inbound', 'national')) ]
-
-# drop pairs with no passengers and reorder columns
-odmatrix_uf <- subset(odmatrix_uf, total_pass >0 )
-odmatrix_uf <- odmatrix_uf[order(international, origin, date, month, day)]
-
-head(odmatrix_uf)
-table(odmatrix_uf$year)
-
-
-fwrite(odmatrix_uf, "data/output/air-travel_od_202004.csv")
-
-
-
-
-
 
 # 1 - PLOT ALL PASSANGERS ---------------------------------------------------------------------
 
 
-# sum number of passangers
+# open data
+data_cols <- read_rds("../../data/anac_covid/combinada_cols.rds")
+
+# make sure we only have 2019 and 2020
+data_cols <- data_cols[year %in% c(2019, 2020)]
+
+# sum number of passangers by origin and destination by day
 t <- data_cols[ds_cotran %in% c("DESEMBARQUE", "", "CONEXÃO DOMÉSTICO"),
                .(total_pass = sum(nr_passag_pagos, nr_passag_gratis, na.rm = TRUE)),
                by = .(origin, destination, date, year, month, day, day_week) ]
@@ -78,6 +20,7 @@ t <- data_cols[ds_cotran %in% c("DESEMBARQUE", "", "CONEXÃO DOMÉSTICO"),
 t[, international := fifelse(nchar(origin)==2 & nchar(destination)>2, 'outbound',
                              fifelse(nchar(origin)>2 & nchar(destination)==2, 'inbound', 'national')) ]
 
+# sum total of passenger by day and flight type
 t <- t[, .(total_pass=sum(total_pass)), by=.(date, year, international)]
 t[, xx := format(date, "%m-%d")]
 t[, xx := lubridate::as_date(xx, format="%m-%d") ]
@@ -86,17 +29,17 @@ t[, xx := lubridate::as_date(xx, format="%m-%d") ]
 t <- t[between(xx, lubridate::as_date("2020-01-01"), lubridate::as_date("2020-07-31"))]
 
 # drop pairs with no passengers and reorder columns
-t <- subset(t, total_pass >0 )
+t <- subset(t, total_pass > 0 )
 
-
+# refactor international flights
 t$international <- factor(t$international, levels=c('inbound','outbound','national'),
                           labels=c('International inbound','International outbound','National'))
 
 # export
-fwrite(t, "./outputs/air_totalpass_fig3.csv")
+# fwrite(t, "./outputs/air_totalpass_fig3.csv")
 
 
-
+# identify date of first death
 m_1st_br <- lubridate::as_date('2020-02-26')
 m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.9, "npc"), y=unit(0.85,"npc"), gp = grid::gpar(fontsize = 7)))
 
@@ -180,11 +123,6 @@ t_percent_drop <- t %>%
 
 
 # identify top countries
-# top_countries <- subset(odmatrix, international=='inbound' & year==2020)
-# # top_countries <- subset(top_countries, !(month==2 & day>25) )
-# head(top_countries)
-# top20 <- top_countries[, .(total_pass=sum( total_pass )), by=origin][order(-total_pass)]
-# top20 <- top20[1:20,]$origin
 
 topcovid <- c('ITÁLIA', 'ESTADOS UNIDOS DA AMÉRICA', 
               'PORTUGAL', 'ALEMANHA', 
@@ -238,17 +176,7 @@ europa <- c('POLÔNIA', 'GRÉCIA', 'IRLANDA', 'TURQUIA', 'LUXEMBURGO',
             'UCRÂNIA')
 
 
-
-
-
-
 asia <- c("COREIA DO SUL")
-
-
-# x <- data_cols[ nm_pais_origem=='EMIRADOS ÁRABES UNIDOS' & nm_pais_destino=='BRASIL']
-# table(x$ds_cotran)
-
-# x[ds_cotran==""]
 
 
 # sum number of passangers
@@ -267,9 +195,11 @@ odmatrix_country[, international := fifelse(nchar(origin)==2 & nchar(destination
 odmatrix_country <- subset(odmatrix_country, total_pass >0 )
 odmatrix_country <- odmatrix_country[order(international, origin, date, month, day)]
 
+# filter only flights from the selected countries
 t2 <- data.table::copy(odmatrix_country)
 t2 <- t2[ origin %in% c(topcovid, america_sul, europa)]
 
+# refactor origin
 t2$origin <- factor(t2$origin, 
                     levels= c('ITÁLIA', 'ESTADOS UNIDOS DA AMÉRICA', 
                               'PORTUGAL', 'ALEMANHA', 
@@ -283,13 +213,13 @@ t2$origin <- factor(t2$origin,
                              rep("Rest of Europe", length(europa))))
 
 
-# t2[, origin := as.character(origin)]
+# sum passengers by origin and date
 t2 <- t2[, .(total_pass=sum(total_pass)), by=.(origin, date, year, international)]
 t2[, xx := format(date, "%m-%d")]
 t2[, xx := lubridate::as_date(xx, format="%m-%d") ]
 
 
-# percent drop
+# calculate percent drop
 t_percent_drop_countries <- t2 %>%
   filter(year %in% c(2019, 2020)) %>%
   mutate(month = month(date)) %>%
@@ -314,6 +244,7 @@ t_percent_drop_countries <- t2 %>%
 #                           labels=c('International inbound','International outbound','National'))
 
 
+# identify date of the first confirmed case
 m_1st_br <- lubridate::as_date('2020-02-26')
 m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.87, "npc"), y=unit(.95,"npc"), gp = grid::gpar(fontsize = 6)))
 
@@ -364,7 +295,7 @@ fwrite(t2, 'data/output/daily_passangers_topcountries_202004.csv')
 # 3 - MAP BEFORE AND AFTER --------------------------------------------------------------------
 
 
-
+# open data from the brazilian od
 odmatrix_passdist_filter_agreg <- fread("../../data/anac_covid/air_odmatrix_filter_agreg.csv")
 
 # brazil map
@@ -464,6 +395,7 @@ ggsave('./figures/3-light_map.pdf', dpi=300, width = 16, height = 12, units = 'c
 data_brazil_dists_first <- fread("../../data/anac_covid/flights_passengers_complete.csv")
 
 
+# caculate indicators by date
 odmatrix_passdist_filter_agreg_dia <- data_brazil_dists_first[between(date, as.Date("2020-02-01"), as.Date("2020-04-30")),
                                                               .(total_passdist = sum(pass_dist, na.rm = TRUE),
                                                                 total_pass = sum(nr_passag_pagos, nr_passag_gratis, na.rm=T),
@@ -504,7 +436,7 @@ ggsave('./figures/avg_kilometers_per_passenger.pdf', dpi=300, width = 16, units 
 ggsave('./figures/avg_kilometers_per_passenger.png', dpi=300, width = 16, units = 'cm')
 
 
-# FOLD CHANGE
+# calculate FOLD CHANGE
 odmatrix_passdist_filter <- fread("../../data/anac_covid/air_odmatrix_filter.csv")
 a <- odmatrix_passdist_filter[, .(sum_pass = sum(total_pass, na.rm = TRUE),
                                   sum_flights = sum(n_flights, na.rm = TRUE)
@@ -557,6 +489,7 @@ plot3_a <- a2 %>%
         legend.text = element_text(size = 7))
 
 
+# assembly plots
 plot3 <- plot3_a + plot3_b + plot_layout(ncol = 2) + plot_annotation(tag_levels = 'A')
 
 ggsave('./figures/fig3-average_distance.png', dpi=300, width = 16, height = 10, units = 'cm')

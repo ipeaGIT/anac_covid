@@ -5,13 +5,14 @@ library(scales)
 library(magrittr)
 library(gghighlight)
 library(viridis)
+library(readr)
 
 options(scipen=999)
 
 # TRAFFIC FLOW BETWEEN MUNICIPALITIES ----------------------------------------------
 
-files <- list.files(path = '../../data-raw/ANAC/', pattern = '-01|-02|-03|-04|-05|-06', full.names = T)
-files <- grep(pattern = 'combinada2020', x = files, value = T)
+files <- list.files(path = '../../data-raw/ANAC/', pattern = '-01|-02|-03|-04|-05|-06|-07', full.names = T)
+files <- grep(pattern = 'combinada', x = files, value = T)
 combinada <- lapply(files, fread) %>% rbindlist()
 
 data_cols <- combinada %>% select(id_combinada, 
@@ -26,7 +27,36 @@ data_cols <- combinada %>% select(id_combinada,
 # set locale to english to convert weeknames
 Sys.setlocale("LC_ALL","English")
 
-# only brazilian flights
+######################################### dt ------------------------------
+# rename columns
+setnames(data_cols, 'sg_uf_origem', 'origin')
+setnames(data_cols, 'sg_uf_destino', 'destination')
+
+# trazer paises para coluna de estados
+data_cols[, origin := fifelse(origin=="", nm_pais_origem, origin)]
+data_cols[, destination := fifelse(destination=="", nm_pais_destino, destination)]
+
+# criar coluna de datas
+data_cols[, date := lubridate::as_date(dt_chegada_real)]
+data_cols[, year := lubridate::year(date)]
+data_cols[, month := lubridate::month(date)]
+data_cols[, day := lubridate::day(date)]
+data_cols[, day_week := lubridate::wday(date, label = TRUE)]
+
+# save it
+write_rds(data_cols, "../../data/anac_covid/combinada_cols.rds")
+
+
+
+
+
+
+# only brazilian flights --------------------------------------------
+data_cols <- read_rds("../../data/anac_covid/combinada_cols.rds")
+
+# filter only 2020
+data_cols <- data_cols[year == 2020]
+
 data_brazil <- data_cols[nm_pais_origem == "BRASIL" & nm_pais_destino == "BRASIL"]
 
 # rename columns
@@ -46,6 +76,8 @@ data_brazil[, year := lubridate::year(date)]
 data_brazil[, month := lubridate::month(date)]
 data_brazil[, day := lubridate::day(date)]
 data_brazil[, day_week := lubridate::wday(date, label = TRUE)]
+
+
 
 # open dists - all cities
 dists <- fread("../../data/anac_covid/airports_dist-df.csv")
