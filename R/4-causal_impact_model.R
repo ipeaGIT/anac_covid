@@ -33,6 +33,7 @@ ggplot() +
   geom_point( data= df2020, aes(x=xx, y=total_pass), color='blue', alpha=.4, size=1) +
   geom_smooth( data= df2020, aes(x=xx, y=total_pass),color='blue',  alpha=.4, size=1) +
   geom_vline(aes(xintercept = as.Date('2020-03-15')), size = .25, linetype = 'dashed') +
+  scale_x_date(date_breaks='3 weeks', date_labels = "%b/%d") +
   theme_minimal()
 
 
