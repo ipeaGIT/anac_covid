@@ -10,7 +10,7 @@ dir.create("data-raw/anac")
 fixed_url <- "https://www.anac.gov.br/assuntos/setor-regulado/empresas/envio-de-informacoes/microdados/"
 
 range_years <- 2017:2020
-range_months <- 1:11       # jan-jul
+range_months <- 1:12    # jan-dez
 month_basic <- paste0("basica",rep(range_years,each = length(range_months)),"-0",rep(range_months,length(range_years)))
 month_comb <- paste0("combinada",rep(range_years,each = length(range_months)),"-0",rep(range_months,length(range_years)))
 
@@ -18,6 +18,7 @@ month_comb <- paste0("combinada",rep(range_years,each = length(range_months)),"-
 month_basic <- base::gsub("010","10",month_basic)
 month_basic <- base::gsub("011","11",month_basic)
 month_basic <- base::gsub("012","12",month_basic)
+
 month_comb <- base::gsub("010","10",month_comb)
 month_comb <- base::gsub("011","11",month_comb)
 month_comb <- base::gsub("012","12",month_comb)
