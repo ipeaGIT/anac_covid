@@ -14,7 +14,7 @@ flight <- future.apply::future_lapply(anac_files,function(i){
   data.table::fread(i,dec=",",encoding = 'Latin-1')
 }) %>% data.table::rbindlist()
 
-flight
+head(flight)
 ls_initial_list <- c("flight","anac_files","%nin%")
 suppressWarnings(dir.create("figures/"))
 
@@ -56,7 +56,7 @@ flight[, t_peso := units::set_units(kg_peso,'kg') %>% units::set_units('t')]
 
 break()
 #
-# co2 estimation ------
+# co2 estimation ----------------------------------------------
 #
 # ref FE: IPPCC
 # https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_3_Ch3_Mobile_Combustion.pdf
@@ -109,6 +109,17 @@ temp_flight <- temp_flight[number_flights, on = 'dt_referencia']
 temp_flight <- temp_flight[, id := 1:.N, by = .(nr_ano_referencia)]
 temp_flight[,dia_mes := format(dt_referencia,"%d/%m")]
 temp_flight[,nr_ano_referencia := as.integer(nr_ano_referencia)]
+
+head(temp_flight)
+table(temp_flight$nr_ano_referencia)
+
+# export
+fwrite(temp_flight, "./outputs/impact_input_emissions.csv")
+
+
+
+
+##### prepare plot -----------------------------------
 
 temp_flight[,`:=`(frollmean2 = data.table::frollmean(emi_co2,n = 2, na.rm=TRUE),
                   frollmean3 = data.table::frollmean(emi_co2,n = 3, na.rm=TRUE),

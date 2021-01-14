@@ -35,7 +35,7 @@ t$international <- factor(t$international, levels=c('inbound','outbound','nation
                           labels=c('International inbound','International outbound','National'))
 
 # export
-fwrite(t, "./outputs/air_totalpass_fig3.csv")
+fwrite(t, "./outputs/impact_input_passengers.csv")
 
 # make sure that there are no flights after june
 t <- t[between(xx, lubridate::ymd("2020-01-01"), lubridate::as_date("2020-12-31"))]

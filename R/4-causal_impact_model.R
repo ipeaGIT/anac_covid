@@ -11,7 +11,11 @@ library(zoo)
 ############ travel demand -----------------------------
 
 # read travel demand data
-t <- fread("./outputs/air_totalpass_fig3.csv")
+t <- fread("./outputs/impact_input_passengers.csv")
+head(t)
+
+# subset national flights
+t <- t[ international == 'National']
 
 # sort data set by date
 t <- t[order(year, xx)]
@@ -42,18 +46,18 @@ df2020 <- subset(df2020, xx != as.Date("2020-02-29"))
 
 # set pre and post period
 time.points <- seq.Date(from=as.Date("2020-01-01"),
-                        to=as.Date('2020-07-31'),
+                        to=as.Date('2020-11-30'),
                         by = 1)
 
 pre.period <- c(as.Date('2020-01-01'), as.Date('2020-03-15'))
-pos.period <- c(as.Date('2020-03-16'), as.Date('2020-07-31'))
+pos.period <- c(as.Date('2020-03-16'), as.Date('2020-11-30'))
 
 
 # prepare model input
 df <- zoo::zoo( cbind(df2020$total_pass, df2019$total_pass, df2018$total_pass, df2017$total_pass),
      time.points)
 
-
+head(df)
 
 # Causal Impact model
 impact_pass <- CausalImpact(df,
@@ -83,7 +87,7 @@ readr::write_rds(impact_pass, "./outputs/impact_output_passengers.csv")
 # read travel emission data
 e <- readr::read_rds('L:/# DIRUR #/ASMEQ/bosistas/joaobazzo/anac_covid/emission_2017-2020.rds')
 head(e)
-
+table(e$dt_referencia)
 
 # create common date ignoring year
 e[, emi_co2 :=  as.numeric(emi_co2) ]
