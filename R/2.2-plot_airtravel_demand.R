@@ -1,4 +1,5 @@
 source("../../git_kaue/acesso_oport/R/fun/setup.R")
+library(scales)
 
 
 
@@ -9,7 +10,7 @@ source("../../git_kaue/acesso_oport/R/fun/setup.R")
 data_cols <- read_rds("../../data/anac_covid/combinada_cols.rds")
 
 # make sure we only have 2019 and 2020
-data_cols <- data_cols[year %in% c(2019, 2020)]
+data_cols <- data_cols[year %in% c(2017, 2018, 2019, 2020)]
 
 # sum number of passangers by origin and destination by day
 t <- data_cols[ds_cotran %in% c("DESEMBARQUE", "", "CONEXÃO DOMÉSTICO"),
@@ -25,8 +26,6 @@ t <- t[, .(total_pass=sum(total_pass)), by=.(date, year, international)]
 t[, xx := format(date, "%m-%d")]
 t[, xx := lubridate::as_date(xx, format="%m-%d") ]
 
-# make sure that there are no flights after june
-t <- t[between(xx, lubridate::as_date("2020-01-01"), lubridate::as_date("2020-07-31"))]
 
 # drop pairs with no passengers and reorder columns
 t <- subset(t, total_pass > 0 )
@@ -36,14 +35,16 @@ t$international <- factor(t$international, levels=c('inbound','outbound','nation
                           labels=c('International inbound','International outbound','National'))
 
 # export
-# fwrite(t, "./outputs/air_totalpass_fig3.csv")
+fwrite(t, "./outputs/air_totalpass_fig3.csv")
+
+# make sure that there are no flights after june
+t <- t[between(xx, lubridate::ymd("2020-01-01"), lubridate::as_date("2020-12-31"))]
 
 
 # identify date of first death
 m_1st_br <- lubridate::as_date('2020-02-26')
 m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.9, "npc"), y=unit(0.85,"npc"), gp = grid::gpar(fontsize = 7)))
 
-library(scales)
 
 plot1_a <- ggplot() + 
   geom_smooth(data= subset(t,year==2019), aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray70') +

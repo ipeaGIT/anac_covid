@@ -11,7 +11,7 @@ options(scipen=999)
 
 # TRAFFIC FLOW BETWEEN MUNICIPALITIES ----------------------------------------------
 
-files <- list.files(path = '../../data-raw/ANAC/', pattern = '-01|-02|-03|-04|-05|-06|-07', full.names = T)
+files <- list.files(path = '../../data-raw/ANAC/', pattern = '-01|-02|-03|-04|-05|-06|-07|-08|-09|-10|-11|-12', full.names = T)
 files <- grep(pattern = 'combinada', x = files, value = T)
 combinada <- lapply(files, fread) %>% rbindlist()
 

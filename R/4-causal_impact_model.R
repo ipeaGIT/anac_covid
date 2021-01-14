@@ -37,7 +37,7 @@ ggplot() +
   theme_minimal()
 
 
-# harmonize dates (2020 ia a leap year)
+# harmonize dates (2020 is a leap year)
 df2020 <- subset(df2020, xx != as.Date("2020-02-29"))
 
 # set pre and post period
