@@ -74,7 +74,7 @@ plot(impact_pass)
   
 
 # save Causal Impact model output
-readr::write_rds(impact_pass, "./outputs/impact_output_passengers.csv")
+readr::write_rds(impact_pass, "./outputs/impact_output_passengers.rds")
 
 
 
@@ -85,17 +85,25 @@ readr::write_rds(impact_pass, "./outputs/impact_output_passengers.csv")
 
 
 # read travel emission data
-e <- readr::read_rds('L:/# DIRUR #/ASMEQ/bosistas/joaobazzo/anac_covid/emission_2017-2020.rds')
+e <- fread("./outputs/impact_input_emissions.csv")
 head(e)
-table(e$dt_referencia)
+
+head(e)
+
+summary(e$dt_referencia)
+
 
 # create common date ignoring year
 e[, emi_co2 :=  as.numeric(emi_co2) ]
 e[, xx := format(dt_referencia, "%m-%d")]
 e[, xx := lubridate::as_date(xx, format="%m-%d") ]
 
+
+
+
 # sort data set by date
 e <- e[order(nr_ano_referencia, xx)]
+head(e)
 
 # subset national flights in separate years
 df2017 <- subset(e, nr_ano_referencia==2017 )
@@ -103,8 +111,14 @@ df2018 <- subset(e, nr_ano_referencia==2018 )
 df2019 <- subset(e, nr_ano_referencia==2019 )
 df2020 <- subset(e, nr_ano_referencia==2020 )
 
+summary(df2017$dt_referencia)
+summary(df2018$dt_referencia)
+summary(df2019$dt_referencia)
+summary(df2020$dt_referencia)
+
+
 # quick inspection plot
-ggplot() + 
+ggplot() +
   # geom_smooth(data= df2019, aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray70') +
   geom_smooth(data= df2017, aes(x=xx, y=emi_co2),  color='gray60', size=1, fill='gray70') +
   geom_smooth(data= df2018, aes(x=xx, y=emi_co2),  color='gray40', size=1, fill='gray70') +
@@ -116,15 +130,19 @@ ggplot() +
 
 
 
-# harmonize dates (2020 ia a leap year)
+## harmonize dates 
+
+# (2020 ia a leap year)
 df2020 <- subset(df2020, xx != as.Date("2020-02-29"))
 
-
-# harmonize dates 2
-date_missing <- setdiff(df2017$xx, df2020$xx)
-as.Date(date_missing)
-df2017 <- subset(df2017, xx %nin%  as.Date(date_missing))
-df2018 <- subset(df2018, xx %nin% as.Date(date_missing))
+# # harmonize dates
+# date_missing <- setdiff(df2017$xx, df2020$xx)
+# as.Date(date_missing)
+# df2017 <- subset(df2017, xx %nin%  as.Date(date_missing))
+# df2018 <- subset(df2018, xx %nin% as.Date(date_missing))
+df2017 <- subset(df2017, xx <= lubridate::as_date('11-30', format="%m-%d") )
+df2018 <- subset(df2018, xx <= lubridate::as_date('11-30', format="%m-%d") )
+df2019 <- subset(df2019, xx <= lubridate::as_date('11-30', format="%m-%d") )
 
 
 
@@ -134,7 +152,7 @@ time.points <- seq.Date(from= as.Date(min(df2020$dt_referencia)),
                         by = 1)
 
 pre.period <- c(as.Date('2020-01-01'), as.Date('2020-03-15'))
-pos.period <- c(as.Date('2020-03-16'), as.Date('2020-04-30'))
+pos.period <- c(as.Date('2020-03-16'), as.Date('2020-11-30'))
 
 
 # prepare model input
@@ -157,5 +175,5 @@ plot(impact_emis)
 
 
 # save Causal Impact model output
-readr::write_rds(impact_emis, "./outputs/impact_output_emissions.csv")
+readr::write_rds(impact_emis, "./outputs/impact_output_emissions.rds")
 
