@@ -72,20 +72,20 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if(length(new.packages)) install.packages(new.packages)
 
   
-# check installation of microdadosBrasil package
-  library(devtools)
-  library(stringi) 
-  new.packages <- !('microdadosBrasil' %in% installed.packages()[,"Package"])
-  if(length(new.packages)) devtools::install_github("lucasmation/microdadosBrasil")
-  library(microdadosBrasil)
-
-  # check installation of archive package
-  
-  new.packages <- !('archive' %in% installed.packages()[,"Package"])
-  if(length(new.packages)) devtools::install_github('jimhester/archive')
-  library(archive)
-  
-  devtools::install_github('jimhester/archive')
+# # check installation of microdadosBrasil package
+#   library(devtools)
+#   library(stringi) 
+#   new.packages <- !('microdadosBrasil' %in% installed.packages()[,"Package"])
+#   if(length(new.packages)) devtools::install_github("lucasmation/microdadosBrasil")
+#   library(microdadosBrasil)
+# 
+#   # check installation of archive package
+#   
+#   new.packages <- !('archive' %in% installed.packages()[,"Package"])
+#   if(length(new.packages)) devtools::install_github('jimhester/archive')
+#   library(archive)
+#   
+#   devtools::install_github('jimhester/archive')
 #####################  Load libraries  -------------------------------------------------------
 lapply(list.of.packages, require, character.only = TRUE)
 
