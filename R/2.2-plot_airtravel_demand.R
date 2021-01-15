@@ -23,8 +23,8 @@ t[, international := fifelse(nchar(origin)==2 & nchar(destination)>2, 'outbound'
 
 # sum total of passenger by day and flight type
 t <- t[, .(total_pass=sum(total_pass)), by=.(date, year, international)]
-t[, xx := format(date, "%m-%d")]
-t[, xx := lubridate::as_date(xx, format="%m-%d") ]
+t[, xx := paste0("2020-", format(date, "%m-%d"))]
+t[, xx := lubridate::as_date(xx, format="%Y-%m-%d") ]
 
 
 # drop pairs with no passengers and reorder columns
@@ -42,16 +42,18 @@ t <- t[between(xx, lubridate::ymd("2020-01-01"), lubridate::as_date("2020-12-31"
 
 
 # identify date of first death
-m_1st_br <- lubridate::as_date('2020-02-26')
+m_1st_br <- lubridate::as_date('2020-03-12')
 m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.9, "npc"), y=unit(0.85,"npc"), gp = grid::gpar(fontsize = 7)))
 
+
+library(scales)
 
 plot1_a <- ggplot() + 
   geom_smooth(data= subset(t,year==2019), aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray70') +
   geom_point( data= subset(t,year==2020), aes(x=xx, y=total_pass), alpha=.4, size=1) +
   # geom_smooth(data= subset(t,year==2020), aes(x=xx, y=total_pass, color=international, fill=international)) +
   geom_vline(xintercept = m_1st_br, color='red', linetype="dashed") +
-  facet_wrap(~international, ncol=3,  scales= "free_y") +
+  facet_wrap(~international, ncol=3,  scales= "fixed") +
   
   scale_y_log10(name="Number of Passengers (log, thousands)", 
                 labels = unit_format(unit = "", scale = 1e-3, accuracy = 0.1),
@@ -61,7 +63,7 @@ plot1_a <- ggplot() +
   
   # annotate("text", label = "1st confirmed case", x =m_1st_br-25, y = 1500, size = 2.5, colour = "red") +
   annotation_custom(m2019) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b")+
+  scale_x_date(date_breaks = "3 months", date_labels = "%b")+
   
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -216,8 +218,8 @@ t2$origin <- factor(t2$origin,
 
 # sum passengers by origin and date
 t2 <- t2[, .(total_pass=sum(total_pass)), by=.(origin, date, year, international)]
-t2[, xx := format(date, "%m-%d")]
-t2[, xx := lubridate::as_date(xx, format="%m-%d") ]
+t2[, xx := paste0("2020-", format(date, "%m-%d"))]
+t2[, xx := lubridate::as_date(xx, format="%Y-%m-%d") ]
 
 
 # calculate percent drop
@@ -246,7 +248,7 @@ t_percent_drop_countries <- t2 %>%
 
 
 # identify date of the first confirmed case
-m_1st_br <- lubridate::as_date('2020-02-26')
+m_1st_br <- lubridate::as_date('2020-03-12')
 m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.87, "npc"), y=unit(.95,"npc"), gp = grid::gpar(fontsize = 6)))
 
 
@@ -264,7 +266,7 @@ plot1_b <- ggplot() +
   
   # annotate("text", label = "1st confirmed case", x =m_1st_br-7, y = 15, size = 2.5, colour = "red") +
   annotation_custom(m2019) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", date_minor_breaks = "1 month")+
+  scale_x_date(date_breaks = "3 months", date_labels = "%b", date_minor_breaks = "1 month")+
   
   theme_minimal() +
   theme( #legend.position = c(0.8, 0.2),
