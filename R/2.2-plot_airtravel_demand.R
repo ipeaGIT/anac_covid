@@ -349,7 +349,7 @@ ggsave('./figures/3-dark_map.pdf', width = 16, height = 12, units = 'cm')
 # aa <- subset(odmatrix_passdist_filter_agreg, total_pass >500) 
 
 ## light theme
-ggplot() + 
+fi2_map <- ggplot() + 
   geom_sf(data= sf::st_transform(states_sf, crs = 4326), fill="gray90", color = "white") +
   geom_sf(data= sf::st_transform(brazil_sf, crs = 4326), fill=NA, color ="grey50") +
   # geom_point(data = top_20_od, aes(x = lon_from, y = lat_from)) +
@@ -415,7 +415,7 @@ odmatrix_passdist_filter_agreg_dia <- data_brazil_dists_first[between(date, as.D
 
 # CHART mean_km_by_passengers
 
-plot3_b <- ggplot()+
+fig2_graph_b <- ggplot()+
   geom_line(data = odmatrix_passdist_filter_agreg_dia,
             aes(x = date, y = total_passdist_weighted), color='#008080', size = .8, show.legend = FALSE) +
   # geom_vline(data = bb, color='gray60', size=1.8, alpha=.4, aes(xintercept = as.Date(as.Date("2020-03-15"))))+
