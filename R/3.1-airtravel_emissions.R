@@ -8,84 +8,19 @@ library(gghighlight)
 source("R/0_loadpackages.R",local = TRUE)
 `%nin%` = Negate(`%in%`)
 
-anac_files <- list.files(path = "../../data-raw/ANAC/",pattern = 'basica',full.names = TRUE)
 
-flight <- future.apply::future_lapply(anac_files,function(i){
-  data.table::fread(i,dec=",",encoding = 'Latin-1')
-}) %>% data.table::rbindlist()
+# read flight emissions estimates -------
 
-head(flight)
-ls_initial_list <- c("flight","anac_files","%nin%")
-suppressWarnings(dir.create("figures/"))
+# read data with emissions of all individual flights
+flightdf <- readr::read_rds("../../data/anac_covid/emissions_basica.rds")
+head(flightdf)
 
-#
-# organize basica-data
-#
-flight[,nr_passag_total := nr_passag_gratis + nr_passag_pagos]
-flightbr <- flight[nm_pais_origem %in% 'BRASIL' & 
-                     nm_pais_destino %in% 'BRASIL',]
-flightnbr <- flight[nm_pais_origem %nin% 'BRASIL' | 
-                      nm_pais_destino %nin% 'BRASIL',]
-nrow(flightbr) + nrow(flightnbr)
-nrow(flight)
-sum(flightbr$nr_passag_total,na.rm = TRUE) /sum(flight$nr_passag_total,na.rm = TRUE)
-nrow(flightbr) / nrow(flight)
-# kg_load := kg_bagagem_excesso + kg_bagagem_livre + 
-#         kg_carga_gratis + kg_carga_paga + kg_correio + 
-#         nr_passag_total * 75
+summary(flightdf$nr_passag_total)
+summary(flightdf$emi_co2)
 
-flight <- flight[nm_pais_origem %in% 'BRASIL' & 
-                   nm_pais_destino %in% 'BRASIL',
-                 .(nr_ano_referencia,nr_mes_referencia,dt_referencia,
-                   sg_icao_origem,sg_iata_origem,
-                   nr_passag_gratis,nr_passag_pagos,
-                   cd_tipo_linha,
-                   kg_bagagem_livre,kg_bagagem_excesso,
-                   kg_carga_paga,kg_carga_gratis,kg_correio,kg_peso,
-                   id_equipamento,ds_modelo,sg_equipamento_icao,
-                   lt_combustivel,km_distancia,nr_horas_voadas,
-                   sg_icao_destino,sg_iata_destino)]
-flight[,nr_passag_total := nr_passag_gratis + nr_passag_pagos]
-flight[nr_passag_total == 0, nr_passag_total := NA]
-flight[kg_peso == 0, kg_peso := NA]
-flight[km_distancia == 0, km_distancia := NA]
-flight[lt_combustivel == 0, lt_combustivel := NA]
-flight[nr_horas_voadas == 0, nr_horas_voadas := NA]
-flight[, dt_referencia := as.POSIXct(dt_referencia,tz = "America/Bahia")]
-flight[, t_peso := units::set_units(kg_peso,'kg') %>% units::set_units('t')]
-
-break()
-#
-# co2 estimation ----------------------------------------------
-#
-# ref FE: IPPCC
-# https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_3_Ch3_Mobile_Combustion.pdf
-#
-# ref pci: poder calorifico
-# https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/BEN-Series-Historicas-Completas
-#
-# ref density (rho):
-# https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/BEN-Series-Historicas-Completas
-#
-flightdf <- data.table::copy(flight)
-
-FE <- units::set_units(71500,'kg/TJ') 
-limits_pci <- c(11090,10400) %>% 
-  units::set_units('kcal/kg') %>% 
-  units::set_units('TJ/kg')
-pci <- mean(limits_pci) 
-rho <- units::set_units(799,'kg/m^3')
 
 #
-# calculation
-# liters to m^3
-# 
-
-flightdf[,lt_combustivel := lt_combustivel %>% units::set_units('l') %>% units::set_units('m^3')]
-flightdf[,emi_co2 := units::set_units(lt_combustivel * FE * pci * rho,'t')]
-
-#
-# annual difference (ad)
+# annual difference (ad)  -------
 #
 
 ad <- data.table::copy(flightdf)
@@ -96,15 +31,20 @@ ad <- ad[,lapply(.SD,sum, na.rm=TRUE),by = year,.SDcols = 'emi_co2']
 ad[,total := emi_co2/max(emi_co2)]
 ad$emi_co2/10^6
 ad$total
-# emissions per day
+
+
+
+######### get total emissions per day  -------------------------------
 
 number_flights <- data.table::copy(flightdf)[,.N,by = .(dt_referencia)]
 setkey(number_flights,'dt_referencia')
+
 temp_flight <- data.table::copy(flightdf)
 data.table::setkeyv(temp_flight,c("nr_ano_referencia","dt_referencia"))
 temp_flight <- temp_flight[, lapply(.SD, sum, na.rm=TRUE), 
                            .SDcols = c('lt_combustivel','emi_co2','nr_passag_total'), 
                            by = .(dt_referencia,nr_ano_referencia)]
+
 temp_flight <- temp_flight[number_flights, on = 'dt_referencia']
 temp_flight <- temp_flight[, id := 1:.N, by = .(nr_ano_referencia)]
 temp_flight[,dia_mes := format(dt_referencia,"%d/%m")]
@@ -112,9 +52,10 @@ temp_flight[,nr_ano_referencia := as.integer(nr_ano_referencia)]
 
 head(temp_flight)
 table(temp_flight$nr_ano_referencia)
+summary(temp_flight$emi_co2)
 
 # export
-fwrite(temp_flight, "./outputs/impact_input_emissions.csv")
+readr::write_rds(temp_flight, "./outputs/impact_input_emissions.rds", compress = 'gz')
 
 
 

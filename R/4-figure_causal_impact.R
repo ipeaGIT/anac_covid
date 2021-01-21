@@ -7,16 +7,14 @@ library(patchwork)
 `%nin%` <- Negate(`%in%`)
 
 
-############ prepare data -----------------------------
 
+
+
+############ read data -----------------------------
 
 # Read Causal Impact model output
 impact_pass <- readr::read_rds("./outputs/impact_output_passengers.rds")
 impact_emis <- readr::read_rds("./outputs/impact_output_emissions.rds")
-
-# results
-print(impact_pass)
-print(impact_emis)
 
 
 # get data ready for plot
@@ -27,15 +25,15 @@ head(series_emis)
 
 
 
-############ travel demand -----------------------------
 
-plot_impact_pass <- 
+############ plot travel demand -----------------------------
+
+plot_impact_passA <- 
   
   # filter
   series_pass %>%
   subset(., time < as.Date("2020-11-30")) %>%
-  subset(., metric != 'cumulative') %>%
-  # transform(., metric = c('A', 'B')) %>%
+  subset(., metric == 'original') %>%
 
   # plot
   ggplot( aes(x = time)) + 
@@ -56,30 +54,72 @@ plot_impact_pass <-
   geom_line(aes(y = response/1000), size = 0.6,  na.rm = TRUE) +
   
   # details
-  facet_grid(metric ~ ., scales = "free_y")  +
-  theme_bw(base_size = 15) + xlab("") + ylab("Number of passengers (in thousands)") +
+  facet_grid(. ~ metric, scales = "free_y")  +
+  theme_bw(base_size = 12) + xlab("") + ylab("Passengers (thousands)") +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='1 month', date_labels = "%b") +
-  geom_vline(xintercept = as.Date('2020-03-15'),
+  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank())
 
 
-plot_impact_pass
+plot_impact_passA
 
 
 
 
-############ travel emissions -----------------------------
+plot_impact_passB <- 
+  
+  # filter
+  series_pass %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., metric == 'pointwise') %>%
+  
+  # plot
+  ggplot( aes(x = time)) + 
+  
+  # Add zero line to pointwise and cumulative plot
+  geom_line(aes(y = baseline/1000), colour = "darkgrey", size = 0.8, linetype = "solid", na.rm = TRUE) +
+  
+  # Add prediction intervals
+  geom_ribbon(aes(ymin = lower/1000, ymax = upper/1000),
+              fill = "slategray2") +
+  
+  # Add point predictions
+  geom_line(aes(y = mean/1000), 
+            size = 0.6, colour = "darkblue", linetype = "dashed",
+            na.rm = TRUE) +
+  
+  # Add observed data
+  geom_line(aes(y = response/1000), size = 0.6,  na.rm = TRUE) +
+  
+  # details
+  facet_grid(. ~ metric, scales = "free_y")  +
+  theme_bw(base_size = 12) + xlab("") + ylab("Avoided passengers\n(thousands)") +
+  scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
+  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  geom_vline(xintercept = as.Date('2020-03-12'),
+             colour = "darkgrey", size = 0.8, linetype = "dashed") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank())
 
 
-plot_impact_emis <- 
+plot_impact_passB
+
+
+############ plot travel emissions -----------------------------
+
+
+plot_impact_emisC <- 
   
   # filter
   series_emis %>%
   subset(., time < as.Date("2020-11-30")) %>%
   subset(., metric != 'cumulative') %>%
-  # transform(., metric = c('A', 'B')) %>%
+  subset(., metric == 'original') %>%
   
   # plot
   ggplot( aes(x = time)) + 
@@ -101,19 +141,172 @@ plot_impact_emis <-
   
   # details
   facet_grid(metric ~ ., scales = "free_y")  +
-  theme_bw(base_size = 15) + xlab("") + ylab( bquote('CO'^2 ~ 'tons')) +
+  theme_bw(base_size = 12) + xlab("") + ylab( bquote('CO'^2 ~ 'tons (thousands)')) +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='1 month', date_labels = "%b") +
-  geom_vline(xintercept = as.Date('2020-03-15'),
+  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank())
 
 
-plot_impact_emis
+plot_impact_emisC
 
 
 
-plot_impact_pass + plot_impact_emis
+
+
+plot_impact_emisD <- 
+  
+  # filter
+  series_emis %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., metric != 'cumulative') %>%
+  subset(., metric == 'pointwise') %>%
+  
+  # plot
+  ggplot( aes(x = time)) + 
+  
+  # Add zero line to pointwise and cumulative plot
+  geom_line(aes(y = baseline/1000), colour = "darkgrey", size = 0.8, linetype = "solid", na.rm = TRUE) +
+  
+  # Add prediction intervals
+  geom_ribbon(aes(ymin = lower/1000, ymax = upper/1000),
+              fill = "purple4", alpha=.5) +
+  
+  # Add point predictions
+  geom_line(aes(y = mean/1000), 
+            size = 0.6, colour = "darkblue", linetype = "dashed",
+            na.rm = TRUE) +
+  
+  # Add observed data
+  geom_line(aes(y = response/1000), size = 0.6,  na.rm = TRUE) +
+  
+  # details
+  facet_grid(metric ~ ., scales = "free_y")  +
+  theme_bw(base_size = 12) + xlab("") + ylab( bquote('Avoided CO'^2 ~ 'tons'~'(thousands)')) +
+  scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
+  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  geom_vline(xintercept = as.Date('2020-03-12'),
+             colour = "darkgrey", size = 0.8, linetype = "dashed") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank())
+
+
+plot_impact_emisD
+
+
+############ save plots  -----------------------------
+
+plot <- 
+  wrap_plots(plot_impact_passA , 
+             plot_impact_passB , 
+             plot_impact_emisC , 
+             plot_impact_emisD) +
+  plot_annotation(tag_levels = 'A')
+
+plot
+
+ggsave(plot, filename = './figures/impact.png', dpi=300,
+       width = 26, height = 15, units = 'cm')
 
 
 
+
+
+############ numeric results -----------------------------
+
+### passengers
+print(impact_pass)
+summary(impact_pass, 'report')
+
+
+# total (cumulative) that happened with pandemic
+total_obs <- series_pass %>%
+                  subset(., time < as.Date("2020-11-30")) %>%
+                  subset(., time > as.Date("2020-03-13")) %>%
+                  subset(., metric == 'original') %>% # original pointwise cumulative
+                  .$response %>% # mean response
+                  sum()
+
+# total (cumulative) counterfactual IF pandemic had not happened
+total_exp <- series_pass %>%
+                  subset(., time < as.Date("2020-11-30")) %>%
+                  subset(., time > as.Date("2020-03-13")) %>%
+                  subset(., metric == 'original') %>% # original pointwise cumulative
+                  .$mean %>% # mean response
+                  sum()
+
+# abs change
+total_exp - total_obs
+
+# relative change
+(total_exp - total_obs) / total_exp
+
+
+
+
+# daily that happened with pandemic
+daily_obs <- series_pass %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., metric == 'original') %>% # original pointwise cumulative
+  .$response %>% # mean response
+  mean()
+
+# daily counterfactual IF pandemic had not happened
+daily_exp <- series_pass %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., metric == 'original') %>% # original pointwise cumulative
+  .$mean %>% # mean response
+  mean(na.rm=T)
+
+# abs change
+daily_exp - daily_obs
+
+# relative change
+(daily_exp - daily_obs) / daily_exp
+
+
+
+
+
+
+
+### numeric emis -----------------------
+print(impact_emis)
+summary(impact_emis, 'report')
+
+
+# total (cumulative) that happened with pandemic
+total_obs <- series_emis %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., metric == 'original') %>% # original pointwise cumulative
+  .$response %>% # mean response
+  sum()
+
+# daily that happened with pandemic
+daily_obs <- series_emis %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., metric == 'original') %>% # original pointwise cumulative
+  .$response %>% # mean response
+  mean()
+
+# daily counterfactual IF pandemic had not happened
+daily_exp <- series_emis %>%
+  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., metric == 'original') %>% # original pointwise cumulative
+  .$mean %>% # mean response
+  mean(na.rm=T)
+
+# abs change
+daily_exp - daily_obs
+
+# relative change
+(daily_exp - daily_obs) / daily_exp

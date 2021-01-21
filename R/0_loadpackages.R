@@ -90,7 +90,8 @@ if(length(new.packages)) install.packages(new.packages)
 lapply(list.of.packages, require, character.only = TRUE)
 
 # Clean environment and memory
-gc(reset=T )
+  rm(new.packages, list.of.packages)
+  gc(reset=T )
 
 
 
