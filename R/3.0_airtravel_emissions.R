@@ -1,22 +1,25 @@
 #
-# initial configuration -------
+# initial configuration  -------------------------------
 #
 
 rm(list=ls())
 gc(reset = T)
-library(gghighlight)
 source("R/0_loadpackages.R",local = TRUE)
 `%nin%` = Negate(`%in%`)
 
-anac_files <- list.files(path = "../../data-raw/ANAC/",pattern = 'basica',full.names = TRUE)
 
+#### read raw data   -------------------------------
+anac_files <- list.files(path = "../../data-raw/ANAC/",pattern = 'basica',full.names = TRUE)
 
 flight <- future.apply::future_lapply(anac_files,function(i){
   data.table::fread(i,dec=",",encoding = 'Latin-1')
 }) %>% data.table::rbindlist()
 
+
+
+
 #
-# organize basica-data
+# organize basica-data   -------------------------------
 #
 
 flight[,nr_passag_total := nr_passag_gratis + nr_passag_pagos]
@@ -80,11 +83,12 @@ rho <- units::set_units(799,'kg/m^3')
 
 flight[,lt_combustivel := lt_combustivel %>% units::set_units('l') %>% units::set_units('m^3')]
 flight[,emi_co2 := units::set_units(lt_combustivel * FE * pci * rho,'t')]
-
+head(flight)
 # filter
 # flight <- flight[nr_ano_referencia %in% c(2019,2020),]
 
-# write expressions
+
+# save data with emissions of all individual flights
 readr::write_rds(flight,
                  "../../data/anac_covid/emissions_basica.rds",compress = "gz")
 
