@@ -26,6 +26,11 @@ df2018 <- subset(t, year==2018 & international == 'National')
 df2019 <- subset(t, year==2019 & international == 'National')
 df2020 <- subset(t, year==2020 & international == 'National')
 
+sum(df2020$total_pass) # 40,000,459
+sum(df2019$total_pass) # 95,789,888
+
+summary(df2020$total_pass) # mean: 119,049
+summary(df2019$total_pass) # mean: 262,438
 
 
 # quick inspection plot
@@ -36,7 +41,7 @@ ggplot() +
   geom_smooth(data= df2019, aes(x=xx, y=total_pass),  color='gray20', size=1, fill='gray70') +
   geom_point( data= df2020, aes(x=xx, y=total_pass), color='blue', alpha=.4, size=1) +
   geom_smooth( data= df2020, aes(x=xx, y=total_pass),color='blue',  alpha=.4, size=1) +
-  geom_vline(aes(xintercept = as.Date('2020-03-15')), size = .25, linetype = 'dashed') +
+  geom_vline(aes(xintercept = as.Date('2020-03-12')), size = .25, linetype = 'dashed') +
   scale_x_date(date_breaks='3 weeks', date_labels = "%b/%d") +
   theme_minimal()
 
@@ -49,8 +54,8 @@ time.points <- seq.Date(from=as.Date("2020-01-01"),
                         to=as.Date('2020-11-30'),
                         by = 1)
 
-pre.period <- c(as.Date('2020-01-01'), as.Date('2020-03-15'))
-pos.period <- c(as.Date('2020-03-16'), as.Date('2020-11-30'))
+pre.period <- c(as.Date('2020-01-01'), as.Date('2020-03-13'))
+pos.period <- c(as.Date('2020-03-14'), as.Date('2020-11-30'))
 
 
 # prepare model input
@@ -85,7 +90,9 @@ readr::write_rds(impact_pass, "./outputs/impact_output_passengers.rds")
 
 
 # read travel emission data
-e <- fread("./outputs/impact_input_emissions.csv")
+e <- readr::read_rds(temp_flight, "./outputs/impact_input_emissions.rds")
+
+
 head(e)
 
 head(e)
@@ -151,8 +158,8 @@ time.points <- seq.Date(from= as.Date(min(df2020$dt_referencia)),
                         to=as.Date(max(df2020$dt_referencia)),
                         by = 1)
 
-pre.period <- c(as.Date('2020-01-01'), as.Date('2020-03-15'))
-pos.period <- c(as.Date('2020-03-16'), as.Date('2020-11-30'))
+pre.period <- c(as.Date('2020-01-01'), as.Date('2020-03-13'))
+pos.period <- c(as.Date('2020-03-14'), as.Date('2020-11-30'))
 
 
 # prepare model input
