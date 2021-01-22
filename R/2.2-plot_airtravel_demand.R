@@ -3,7 +3,7 @@ library(scales)
 
 
 
-# 1 - PLOT ALL PASSANGERS ---------------------------------------------------------------------
+# prepare data ---------------------------------------------------------------------
 
 
 # open data
@@ -25,6 +25,7 @@ t[, international := fifelse(nchar(origin)==2 & nchar(destination)>2, 'outbound'
 t <- t[, .(total_pass=sum(total_pass)), by=.(date, year, international)]
 t[, xx := paste0("2020-", format(date, "%m-%d"))]
 t[, xx := lubridate::as_date(xx, format="%Y-%m-%d") ]
+t[, month := lubridate::month(date) ]
 
 
 # drop pairs with no passengers and reorder columns
@@ -38,18 +39,29 @@ t$international <- factor(t$international, levels=c('inbound','outbound','nation
 write_rds(t, "./outputs/impact_input_passengers.rds", compress = 'gz')
 
 
+summary(t$xx)
+summary(t$date)
 
 
-# make sure that there are no flights after june
-t <- t[between(xx, lubridate::ymd("2020-01-01"), lubridate::as_date("2020-12-31"))]
+#### Numeric results Dec 2020 vs Dec 2019 ---------------------------------------
 
+# national
+t[ year==2020 & month ==12 & international == 'National', sum(total_pass)] /
+t[ year==2019 & month ==12 & international == 'National', sum(total_pass)]
+
+# international
+t[ year==2020 & month ==12 & international %like% 'International', sum(total_pass)] /
+  t[ year==2019 & month ==12 & international %like% 'International', sum(total_pass)]
+
+
+
+# 1 - PLOT ALL PASSANGERS ---------------------------------------------------------------------
 
 # identify date of first death
 m_1st_br <- lubridate::as_date('2020-03-12')
 m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.9, "npc"), y=unit(0.85,"npc"), gp = grid::gpar(fontsize = 7)))
 
 
-library(scales)
 
 plot1_a <- ggplot() + 
   geom_smooth(data= subset(t,year==2019), aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray70') +

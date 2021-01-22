@@ -18,6 +18,7 @@ library(zoo)
  # put all dates in 2020
  t[, xx := paste0("2020-", format(dt_referencia, "%m-%d"))]
  t[, xx := lubridate::as_date(xx, format="%Y-%m-%d") ]
+ t[, month := lubridate::month(dt_referencia) ]
  
 
 # sort data set by date
@@ -28,6 +29,10 @@ df2017 <- subset(t, nr_ano_referencia==2017)
 df2018 <- subset(t, nr_ano_referencia==2018)
 df2019 <- subset(t, nr_ano_referencia==2019)
 df2020 <- subset(t, nr_ano_referencia==2020)
+
+
+df2020[ month==12, sum(nr_passag_total)] /
+  df2019[ month==12, sum(nr_passag_total)]
 
 sum(df2020$nr_passag_total) # 46,587,063
 sum(df2019$nr_passag_total) # 98,237,874
