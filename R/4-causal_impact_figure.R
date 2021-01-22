@@ -22,8 +22,7 @@ series_pass <- CausalImpact:::CreateDataFrameForPlot(impact_pass)
 series_emis <- CausalImpact:::CreateDataFrameForPlot(impact_emis)
 head(series_pass)
 head(series_emis)
-
-
+tail(series_emis)
 
 
 ############ plot travel demand -----------------------------
@@ -32,7 +31,7 @@ plot_impact_passA <-
   
   # filter
   series_pass %>%
-  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
   subset(., metric == 'original') %>%
 
   # plot
@@ -74,7 +73,7 @@ plot_impact_passB <-
   
   # filter
   series_pass %>%
-  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
   subset(., metric == 'pointwise') %>%
   
   # plot
@@ -117,7 +116,7 @@ plot_impact_emisC <-
   
   # filter
   series_emis %>%
-  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
   subset(., metric != 'cumulative') %>%
   subset(., metric == 'original') %>%
   
@@ -129,7 +128,7 @@ plot_impact_emisC <-
   
   # Add prediction intervals
   geom_ribbon(aes(ymin = lower/1000, ymax = upper/1000),
-              fill = "purple4", alpha=.5) +
+              fill = "#fd8d3c", alpha=.9) +
   
   # Add point predictions
   geom_line(aes(y = mean/1000), 
@@ -141,7 +140,7 @@ plot_impact_emisC <-
   
   # details
   facet_grid(metric ~ ., scales = "free_y")  +
-  theme_bw(base_size = 12) + xlab("") + ylab( bquote('CO'^2 ~ 'tons (thousands)')) +
+  theme_bw(base_size = 12) + xlab("") + ylab( bquote('CO'[2] ~ 'tons (thousands)')) +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
   scale_x_date(date_breaks='3 months', date_labels = "%b") +
   geom_vline(xintercept = as.Date('2020-03-12'),
@@ -161,7 +160,7 @@ plot_impact_emisD <-
   
   # filter
   series_emis %>%
-  subset(., time < as.Date("2020-11-30")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
   subset(., metric != 'cumulative') %>%
   subset(., metric == 'pointwise') %>%
   
@@ -173,7 +172,7 @@ plot_impact_emisD <-
   
   # Add prediction intervals
   geom_ribbon(aes(ymin = lower/1000, ymax = upper/1000),
-              fill = "purple4", alpha=.5) +
+              fill = "#fd8d3c", alpha=.9) +
   
   # Add point predictions
   geom_line(aes(y = mean/1000), 
@@ -185,9 +184,9 @@ plot_impact_emisD <-
   
   # details
   facet_grid(metric ~ ., scales = "free_y")  +
-  theme_bw(base_size = 12) + xlab("") + ylab( bquote('Avoided CO'^2 ~ 'tons'~'(thousands)')) +
+  theme_bw(base_size = 12) + xlab("") + ylab( bquote('Avoided CO'[2] ~ 'tons'~'(thousands)')) +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  scale_x_date(date_breaks='1 months', date_labels = "%b") +
   geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -209,14 +208,14 @@ plot <-
 
 plot
 
-ggsave(plot, filename = './figures/impact.png', dpi=300,
+ggsave(plot, filename = './figures/figure2_impact.png', dpi=300,
        width = 26, height = 15, units = 'cm')
 
 
 
 
 
-############ numeric results -----------------------------
+############ numeric passengers -----------------------------
 
 ### passengers
 print(impact_pass)
@@ -225,16 +224,16 @@ summary(impact_pass, 'report')
 
 # total (cumulative) that happened with pandemic
 total_obs <- series_pass %>%
-                  subset(., time < as.Date("2020-11-30")) %>%
-                  subset(., time > as.Date("2020-03-13")) %>%
+                  subset(., time <= as.Date("2020-12-31")) %>%
+                  subset(., time >= as.Date("2020-03-12")) %>%
                   subset(., metric == 'original') %>% # original pointwise cumulative
                   .$response %>% # mean response
                   sum()
 
 # total (cumulative) counterfactual IF pandemic had not happened
 total_exp <- series_pass %>%
-                  subset(., time < as.Date("2020-11-30")) %>%
-                  subset(., time > as.Date("2020-03-13")) %>%
+                  subset(., time <= as.Date("2020-12-31")) %>%
+                  subset(., time >= as.Date("2020-03-12")) %>%
                   subset(., metric == 'original') %>% # original pointwise cumulative
                   .$mean %>% # mean response
                   sum()
@@ -250,16 +249,16 @@ total_exp - total_obs
 
 # daily that happened with pandemic
 daily_obs <- series_pass %>%
-  subset(., time < as.Date("2020-11-30")) %>%
-  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
+  subset(., time >= as.Date("2020-03-12")) %>%
   subset(., metric == 'original') %>% # original pointwise cumulative
   .$response %>% # mean response
   mean()
 
 # daily counterfactual IF pandemic had not happened
 daily_exp <- series_pass %>%
-  subset(., time < as.Date("2020-11-30")) %>%
-  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
+  subset(., time >= as.Date("2020-03-12")) %>%
   subset(., metric == 'original') %>% # original pointwise cumulative
   .$mean %>% # mean response
   mean(na.rm=T)
@@ -275,24 +274,25 @@ daily_exp - daily_obs
 
 
 
-
-### numeric emis -----------------------
+############ numeric emis -----------------------
 print(impact_emis)
 summary(impact_emis, 'report')
 
+7541343 /2882909
+2882909/7541343
 
 # total (cumulative) that happened with pandemic
 total_obs <- series_emis %>%
-  subset(., time < as.Date("2020-11-30")) %>%
-  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
+  subset(., time >= as.Date("2020-03-12")) %>%
   subset(., metric == 'original') %>% # original pointwise cumulative
   .$response %>% # mean response
   sum()
 
 # daily that happened with pandemic
 daily_obs <- series_emis %>%
-  subset(., time < as.Date("2020-11-30")) %>%
-  subset(., time > as.Date("2020-03-13")) %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
+  subset(., time >= as.Date("2020-03-12")) %>%
   subset(., metric == 'original') %>% # original pointwise cumulative
   .$response %>% # mean response
   mean()

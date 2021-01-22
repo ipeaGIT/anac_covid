@@ -12,12 +12,12 @@ data_cols <- read_rds("../../data/anac_covid/combinada_cols.rds")
 # make sure we only have 2019 and 2020
 data_cols <- data_cols[year %in% c(2017, 2018, 2019, 2020)]
 
-# sum number of passangers by origin and destination by day
+# sum number of passengers by origin and destination by day
 t <- data_cols[ds_cotran %in% c("DESEMBARQUE", "", "CONEXÃO DOMÉSTICO"),
                .(total_pass = sum(nr_passag_pagos, nr_passag_gratis, na.rm = TRUE)),
                by = .(origin, destination, date, year, month, day, day_week) ]
 
-# classify whether international flights are inbout or outbound
+# classify whether international flights are inbound or outbound
 t[, international := fifelse(nchar(origin)==2 & nchar(destination)>2, 'outbound',
                              fifelse(nchar(origin)>2 & nchar(destination)==2, 'inbound', 'national')) ]
 
@@ -35,7 +35,10 @@ t$international <- factor(t$international, levels=c('inbound','outbound','nation
                           labels=c('International inbound','International outbound','National'))
 
 # export
-fwrite(t, "./outputs/impact_input_passengers.csv")
+write_rds(t, "./outputs/impact_input_passengers.rds", compress = 'gz')
+
+
+
 
 # make sure that there are no flights after june
 t <- t[between(xx, lubridate::ymd("2020-01-01"), lubridate::as_date("2020-12-31"))]
