@@ -3,13 +3,13 @@
 # 
 
 rm(list=ls())
-tolower_noaccent <- function(i){
-  i <- sub("^\\s+", "",i)
-  i <- stringi::stri_trans_general(i,id = "Latin-ASCII") %>% 
-    tolower() %>% 
-    stringr::str_replace_all("-"," ")  %>% 
-    stringr::str_replace_all("'","")
-}
+# tolower_noaccent <- function(i){
+#   i <- sub("^\\s+", "",i)
+#   i <- stringi::stri_trans_general(i,id = "Latin-ASCII") %>% 
+#     tolower() %>% 
+#     stringr::str_replace_all("-"," ")  %>% 
+#     stringr::str_replace_all("'","")
+# }
 
 gc(reset = T)
 library(gghighlight)
@@ -19,12 +19,12 @@ source("R/0_loadpackages.R",local = TRUE)
 
 anac_files <- list.files(path = "../../data-raw/ANAC/",pattern = 'basica',full.names = TRUE)
 
-flight <- future.apply::future_lapply(anac_files[1],function(i){
+flight <- future.apply::future_lapply(anac_files,function(i){
   data.table::fread(i,dec=",",encoding = 'Latin-1')
 }) %>% data.table::rbindlist()
 flight <- flight[nm_pais_origem %in% 'BRASIL' & 
                    nm_pais_destino %in% 'BRASIL',]
-flight[,ds_modelo := tolower_noaccent(ds_modelo)]
+#flight[,ds_modelo := tolower_noaccent(ds_modelo)]
 
 tier3a_filepath <- "tier3a/tiera3a_data.xlsx"
 
@@ -53,6 +53,32 @@ flight[lto_ef,on = c("sg_equipamento_icao" = "ICAO"),
             p30_trust = i.30p_trust,
             p85_trust = i.85p_trust,
             p100_trust = i.100p_trust)]
+
+# > flight[is.na(Number_engine),]$ds_modelo %>% unique()
+# [1] "AEROSPATIALE/ALENIA ATR 72 FREIGHTER"          
+# [2] "AEROSPATIALE/ALENIA ATR 42-300 / 320"          
+# [3] "AEROSPATIALE/ALENIA ATR 42-500"                
+# [4] "EMBRAER EMB.110 BANDEIRNATE"                   
+# [5] "AEROSPATIALE/ALENIA ATR 72 201/202"            
+# [6] "ANTONOV AN-12"                                 
+# [7] "AEROSPATIALE/ALENIA ATR 72-500/72-212A (500)  "
+# [8] "CESSNA 208 CARAVAN"                            
+# [9] ""                                              
+# [10] "FAIRCHILD SWEARINGEN METRO"                    
+# [11] "LOCKHEED L-182 / 282 / 382 (L-100) HERCULES"
+
+# fix NA values from merge
+# dt <- openxlsx::read.xlsx("Caracteristicasfisicaseoperacionaisdeaeronavescomerciais.xlsx",
+#                           startRow = 4) %>% setDT()
+
+dt1 <- fread("dados_aeronaves.csv")
+
+dt[Modelo.da.aeronave %like% "ATR",]
+lto_ef[Aircraft %like% "Aerospatiale",]$ICAO
+flight[ds_modelo %like% "AEROSPATIALE",]$sg_equipamento_icao %>% unique()
+flight[ds_modelo %like% "AEROSPATIALE",]$ds_modelo %>% unique()
+nrow(flight)
+nrow(flight[is.na(Number_engine),])
 
 # add units
 units::install_symbolic_unit("engines")
@@ -158,11 +184,24 @@ flight[is.na(taxi_in) &
          Nmov_destin > 3001 & 
          Nmov_destin < 5000,taxi_in := mean(tmpflight_in2,na.rm=TRUE)]
 
+#
+# 1.3) add 'take off'/'approach'/''climbing'--------
+#
+
+power_lto <- openxlsx::read.xlsx(tier3a_filepath,"POWER_LTO")
+
+flight[power_lto,on]
+
+
 
 
 #
-# add 'fuselagem' information into 'flight' data
-# 
+# fuel consumption LTO (to do)
+#
+
+#
+# 1.3) APU
+# 1.3.1) add 'fuselagem' information into 'flight' data
 
 large_body <- c("B747","A330","A340","A380")
 for(i in large_body){
@@ -171,11 +210,6 @@ for(i in large_body){
 
 
 
-# 
-# check 'jet' or 'turbohelice'
-aeronave_cat <- openxlsx::read.xlsx(tier3a_filepath,
-                                    "AIRCRAFT_TYPE_DESIGNATORS")
-data.table::setDT(aeronave_cat)
 aeronave_cat[`Aircraft.code.(Type.designator)` %in% 
                flight$sg_equipamento_icao[1],]
 
