@@ -64,6 +64,8 @@ m2019 <- grid::grobTree(grid::textGrob('2019', x=unit(0.9, "npc"), y=unit(0.85,"
 
 
 plot1_a <- ggplot() + 
+  # geom_smooth(data= subset(t,year==2017), aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray90') +
+  # geom_smooth(data= subset(t,year==2018), aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray80') +
   geom_smooth(data= subset(t,year==2019), aes(x=xx, y=total_pass), color='gray50', size=1, fill='gray70') +
   geom_point( data= subset(t,year==2020), aes(x=xx, y=total_pass), alpha=.4, size=1) +
   # geom_smooth(data= subset(t,year==2020), aes(x=xx, y=total_pass, color=international, fill=international)) +

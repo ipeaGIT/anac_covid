@@ -130,6 +130,8 @@ df2018 <- subset(e, nr_ano_referencia==2018 )
 df2019 <- subset(e, nr_ano_referencia==2019 )
 df2020 <- subset(e, nr_ano_referencia==2020 )
 
+sum(df2018$emi_co2)
+
 summary(df2017$dt_referencia)
 summary(df2018$dt_referencia)
 summary(df2019$dt_referencia)
