@@ -3,6 +3,7 @@ library(data.table)
 library(ggplot2)
 library(zoo)
 library(patchwork)
+library(magrittr)
 
 `%nin%` <- Negate(`%in%`)
 
@@ -289,6 +290,14 @@ total_obs <- series_emis %>%
   .$response %>% # mean response
   sum()
 
+# total (cumulative) counterfactual without pandemic
+total_counter <- series_emis %>%
+  subset(., time <= as.Date("2020-12-31")) %>%
+  subset(., time >= as.Date("2020-03-12")) %>%
+  subset(., metric == 'original') %>% # original pointwise cumulative
+  .$response %>% # mean response
+  sum()
+
 # daily that happened with pandemic
 daily_obs <- series_emis %>%
   subset(., time <= as.Date("2020-12-31")) %>%
@@ -310,3 +319,27 @@ daily_exp - daily_obs
 
 # relative change
 (daily_exp - daily_obs) / daily_exp
+
+
+
+
+
+# 1st 7 months (comparacao com Liu et al)
+# blue line
+counter <- series_emis %>%
+              subset(., time < as.Date("2020-07-31")) %>%
+              subset(., time > as.Date("2020-01-01")) %>%
+              subset(., metric != 'cumulative') %>%
+              subset(., metric == 'original') %>%
+              .$mean %>% # mean response
+              sum(na.rm=T)
+# gray line
+observed <- series_emis %>%
+  subset(., time < as.Date("2020-07-31")) %>%
+  subset(., time > as.Date("2020-01-01")) %>%
+  subset(., metric != 'cumulative') %>%
+  subset(., metric == 'original') %>%
+  .$response %>% # mean response
+  sum(na.rm=T)
+
+counter - observed
