@@ -2,6 +2,7 @@ library(CausalImpact)
 library(data.table)
 library(ggplot2)
 library(zoo)
+library(magrittr)
 
 `%nin%` <- Negate(`%in%`)
 
@@ -14,6 +15,10 @@ library(zoo)
  # t <- read_rds("./outputs/impact_input_passengers.rds")
  t <- readr::read_rds("./outputs/impact_input_emissions.rds")
  head(t)
+ 
+ # total emissions observed each year
+ t[, sum(emi_co2), by=nr_ano_referencia  ]
+ 
  
  # put all dates in 2020
  t[, xx := paste0("2020-", format(dt_referencia, "%m-%d"))]

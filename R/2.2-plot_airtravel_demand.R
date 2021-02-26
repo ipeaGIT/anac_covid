@@ -44,6 +44,7 @@ summary(t$date)
 
 
 #### Numeric results Dec 2020 vs Dec 2019 ---------------------------------------
+t <- read_rds("./outputs/impact_input_passengers.rds")
 
 # national
 t[ year==2020 & month ==12 & international == 'National', sum(total_pass)] /

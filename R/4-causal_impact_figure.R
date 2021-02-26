@@ -26,6 +26,10 @@ head(series_emis)
 tail(series_emis)
 
 
+
+
+
+
 ############ plot travel demand -----------------------------
 
 plot_impact_passA <- 
@@ -228,7 +232,7 @@ total_obs <- series_pass %>%
                   subset(., time <= as.Date("2020-12-31")) %>%
                   subset(., time >= as.Date("2020-03-12")) %>%
                   subset(., metric == 'original') %>% # original pointwise cumulative
-                  .$response %>% # mean response
+                  .$response %>% # response
                   sum()
 
 # total (cumulative) counterfactual IF pandemic had not happened
@@ -236,7 +240,7 @@ total_exp <- series_pass %>%
                   subset(., time <= as.Date("2020-12-31")) %>%
                   subset(., time >= as.Date("2020-03-12")) %>%
                   subset(., metric == 'original') %>% # original pointwise cumulative
-                  .$mean %>% # mean response
+                  .$mean %>% # mean
                   sum()
 
 # abs change
@@ -253,7 +257,7 @@ daily_obs <- series_pass %>%
   subset(., time <= as.Date("2020-12-31")) %>%
   subset(., time >= as.Date("2020-03-12")) %>%
   subset(., metric == 'original') %>% # original pointwise cumulative
-  .$response %>% # mean response
+  .$response %>% # response
   mean()
 
 # daily counterfactual IF pandemic had not happened
@@ -261,7 +265,7 @@ daily_exp <- series_pass %>%
   subset(., time <= as.Date("2020-12-31")) %>%
   subset(., time >= as.Date("2020-03-12")) %>%
   subset(., metric == 'original') %>% # original pointwise cumulative
-  .$mean %>% # mean response
+  .$mean %>% # mean
   mean(na.rm=T)
 
 # abs change
@@ -279,40 +283,52 @@ daily_exp - daily_obs
 print(impact_emis)
 summary(impact_emis, 'report')
 
-7541343 /2882909
-2882909/7541343
+head(series_emis)
+table(series_emis$metric)
 
-# total (cumulative) that happened with pandemic
-total_obs <- series_emis %>%
-  subset(., time <= as.Date("2020-12-31")) %>%
-  subset(., time >= as.Date("2020-03-12")) %>%
-  subset(., metric == 'original') %>% # original pointwise cumulative
-  .$response %>% # mean response
-  sum()
 
-# total (cumulative) counterfactual without pandemic
-total_counter <- series_emis %>%
-  subset(., time <= as.Date("2020-12-31")) %>%
-  subset(., time >= as.Date("2020-03-12")) %>%
-  subset(., metric == 'original') %>% # original pointwise cumulative
-  .$response %>% # mean response
-  sum()
+# 2020 Total emis in counterfactual without pandemic
+subset(series_emis, metric=='original')$lower %>% sum()  # lower bound estimate
+subset(series_emis, metric=='original')$mean %>% sum()   # mean estimate
+subset(series_emis, metric=='original')$upper  %>% sum() # upper bound estimate
 
-# daily that happened with pandemic
-daily_obs <- series_emis %>%
-  subset(., time <= as.Date("2020-12-31")) %>%
-  subset(., time >= as.Date("2020-03-12")) %>%
-  subset(., metric == 'original') %>% # original pointwise cumulative
-  .$response %>% # mean response
-  mean()
+# 2020 Total emis observed with pandemic
+subset(series_emis, metric=='original')$response %>% sum()
 
-# daily counterfactual IF pandemic had not happened
-daily_exp <- series_emis %>%
-  subset(., time < as.Date("2020-11-30")) %>%
-  subset(., time > as.Date("2020-03-13")) %>%
-  subset(., metric == 'original') %>% # original pointwise cumulative
-  .$mean %>% # mean response
-  mean(na.rm=T)
+
+### only in the period with Pandemic 
+  
+  # total (cumulative) that happened with pandemic
+  total_obs <- series_emis %>%
+    subset(., time <= as.Date("2020-12-31")) %>%
+    subset(., time >= as.Date("2020-03-12")) %>%
+    subset(., metric == 'original') %>% # original pointwise cumulative
+    .$response %>% # response
+    sum()
+  
+  # total (cumulative) counterfactual without pandemic
+  total_counter <- series_emis %>%
+    subset(., time <= as.Date("2020-12-31")) %>%
+    subset(., time >= as.Date("2020-03-12")) %>%
+    subset(., metric == 'original') %>% # original pointwise cumulative
+    .$mean %>% # mean
+    sum()
+  
+  # daily that happened with pandemic
+  daily_obs <- series_emis %>%
+    subset(., time <= as.Date("2020-12-31")) %>%
+    subset(., time >= as.Date("2020-03-12")) %>%
+    subset(., metric == 'original') %>% # original pointwise cumulative
+    .$response %>% # response
+    mean()
+  
+  # daily counterfactual IF pandemic had not happened
+  daily_exp <- series_emis %>%
+    subset(., time < as.Date("2020-11-30")) %>%
+    subset(., time > as.Date("2020-03-13")) %>%
+    subset(., metric == 'original') %>% # original pointwise cumulative
+    .$mean %>% # mean
+    mean(na.rm=T)
 
 # abs change
 daily_exp - daily_obs
