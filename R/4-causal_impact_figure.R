@@ -12,7 +12,7 @@ library(magrittr)
 
 
 ############ read data -----------------------------
-
+setwd("L:/Proj_acess_oport/git_rafa/anac_covid")
 # Read Causal Impact model output
 impact_pass <- readr::read_rds("./outputs/impact_output_passengers.rds")
 impact_emis <- readr::read_rds("./outputs/impact_output_emissions.rds")
@@ -28,6 +28,9 @@ tail(series_emis)
 
 
 
+my_x_breaks <- c(paste0("2020-0",seq(2,9,by = 2),"-01"),
+                 paste0("2020-",seq(10,12,by = 2),"-01")) %>% as.Date()
+my_x_labels <- c("fev","apr","jun","aug","oct","dec")
 
 
 ############ plot travel demand -----------------------------
@@ -61,7 +64,8 @@ plot_impact_passA <-
   facet_grid(. ~ metric, scales = "free_y")  +
   theme_bw(base_size = 12) + xlab("") + ylab("Passengers (thousands)") +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  #scale_x_date(date_breaks='3 months', date_labels = "%b", expand = c(0, 0)) +
+  scale_x_continuous(breaks = my_x_breaks,labels = my_x_labels, expand = c(0, 0)) +
   geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -101,9 +105,10 @@ plot_impact_passB <-
   
   # details
   facet_grid(. ~ metric, scales = "free_y")  +
-  theme_bw(base_size = 12) + xlab("") + ylab("Avoided passengers\n(thousands)") +
+  theme_bw(base_size = 12) + xlab("") + ylab("Difference on passengers\n(thousands)") +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+  #scale_x_date(date_breaks='3 months', date_labels = "%b", expand = c(0, 0)) +
+  scale_x_continuous(breaks = my_x_breaks,labels = my_x_labels, expand = c(0, 0)) +
   geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -147,7 +152,8 @@ plot_impact_emisC <-
   facet_grid(metric ~ ., scales = "free_y")  +
   theme_bw(base_size = 12) + xlab("") + ylab( bquote('CO'[2] ~ 'tons (thousands)')) +
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='3 months', date_labels = "%b") +
+ # scale_x_date(date_breaks='2 months', date_labels = "%b", expand = c(0, 0)) +
+  scale_x_continuous(breaks = my_x_breaks,labels = my_x_labels, expand = c(0, 0)) +
   geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -158,12 +164,7 @@ plot_impact_emisC <-
 plot_impact_emisC
 
 
-
-
-
-plot_impact_emisD <- 
-  
-  # filter
+plot_impact_emisD <-  # filter
   series_emis %>%
   subset(., time <= as.Date("2020-12-31")) %>%
   subset(., metric != 'cumulative') %>%
@@ -189,9 +190,13 @@ plot_impact_emisD <-
   
   # details
   facet_grid(metric ~ ., scales = "free_y")  +
-  theme_bw(base_size = 12) + xlab("") + ylab( bquote('Avoided CO'[2] ~ 'tons'~'(thousands)')) +
+  theme_bw(base_size = 12) + xlab("") +
+  #ylab( bquote('Difference on CO'[2] ~ 'tons'~'\n(thousands)')) +
+  ylab(expression(atop("",atop(textstyle('Difference on CO'[2]~ 'tons'),
+                                      atop(textstyle("(thousands)")))))) + 
   scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-  scale_x_date(date_breaks='1 months', date_labels = "%b") +
+  scale_x_continuous(breaks = my_x_breaks,labels = my_x_labels, expand = c(0, 0)) +
+  #scale_x_date(date_breaks='3 months', date_labels = "%b") +
   geom_vline(xintercept = as.Date('2020-03-12'),
              colour = "darkgrey", size = 0.8, linetype = "dashed") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -201,7 +206,7 @@ plot_impact_emisD <-
 
 plot_impact_emisD
 
-
+break()
 ############ save plots  -----------------------------
 
 plot <- 
@@ -212,8 +217,10 @@ plot <-
   plot_annotation(tag_levels = 'A')
 
 plot
-
+setwd("L:/Proj_acess_oport/git_jbazzo/anac_covid")
 ggsave(plot, filename = './figures/figure2_impact.png', dpi=300,
+       width = 26, height = 15, units = 'cm')
+ggsave(plot, filename = './figures/figure2_impact.pdf', dpi=300,
        width = 26, height = 15, units = 'cm')
 
 
