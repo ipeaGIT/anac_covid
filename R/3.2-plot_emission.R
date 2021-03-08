@@ -341,13 +341,15 @@ fig5b
 
 fig5 <- (fig5a / fig5b)  + 
   plot_annotation(tag_levels = 'A',
-                  title = expression("CO"[2]*" emissions and fuel efficiency"),
-                  subtitle = "Variation between pre and post COVID outbreak")
+                  #title = expression("CO"[2]*" emissions and fuel efficiency"),
+                  #subtitle = "Variation between pre and post COVID outbreak"
+                  )
 
 fig5
-ggsave("figures/fig5-emissions.pdf",plot = fig5, width = 27.5, height = 30.0, units = "cm",
+ggsave("figures/fig5-emissions.pdf",plot = fig5, width = 27.5, height = 27.5, units = "cm",
        scale = 0.6, dpi = 300)
-
+ggsave("figures/fig5-emissions.png",plot = fig5, width = 27.5, height = 27.5, units = "cm",
+       scale = 0.6, dpi = 300)
 
 break()
 #
