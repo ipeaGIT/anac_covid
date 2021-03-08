@@ -91,7 +91,8 @@ rho <- units::set_units(799,'kg/m^3')
 # liters to m^3
 # 
 
-flight[,lt_combustivel := lt_combustivel %>% units::set_units('l') %>% units::set_units('m^3')]
+flight[,lt_combustivel := lt_combustivel %>% units::set_units('l') %>% 
+         units::set_units('m^3')]
 flight[,emi_co2 := units::set_units(lt_combustivel * FE * pci * rho,'t')]
 flight[,emi_co2_max := units::set_units(lt_combustivel * FE * pci_max * rho,'t')]
 # save data with emissions of all individual flights
