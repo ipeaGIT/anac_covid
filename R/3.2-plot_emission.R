@@ -7,17 +7,16 @@ source("R/0_loadpackages.R",local = TRUE)
 `%nin%` = Negate(`%in%`)
 `%nlike%` = Negate(`%like%`)
 
-
-#setwd("L:/Proj_acess_oport/git_rafa/anac_covid")
-###### read emissions
-
-flight <- readr::read_rds("../../data/anac_covid/emissions_basica.rds")
-#flight
-flight <- flight[nr_ano_referencia %in% c(2019,2020),]
 pre_covid_period <- c("2020-02-01","2020-03-15")
 pos_covid_period <- c("2020-03-16","2020-04-30")
 pre_covid_period_name <- "01/Feb to 15/Mar"
 pos_covid_period_name <- "16/Mar to 30/Apr"
+
+#setwd("L:/Proj_acess_oport/git_rafa/anac_covid")
+###### read emissions------
+
+flight <- readr::read_rds("../../data/anac_covid/emissions_basica.rds")
+flight <- flight[nr_ano_referencia %in% c(2019,2020),]
 
 
 # data periods
@@ -25,7 +24,7 @@ pos_covid_period_name <- "16/Mar to 30/Apr"
 #seq(as.Date(pos_covid_period[1],"%Y-%m-%d"),as.Date(pos_covid_period[2],"%Y-%m-%d"),by = 1) %>% length()
 
 
-###### check emissions by year
+###### check emissions by year-----
 
 
 flight[,sum(emi_co2/10^6,na.rm = TRUE),by = .(nr_ano_referencia,cd_tipo_linha)]
@@ -34,7 +33,7 @@ flight[,sum(emi_co2/10^6,na.rm = TRUE),by = .(nr_ano_referencia,cd_tipo_linha)]
 ####### check domestic and cargo fuel
 
 
-####### emissions per day
+####### emissions per day----
 
 
 number_flights <- data.table::copy(flight)[cd_di == "0" | cd_di == "4" | cd_di == "C",]
@@ -46,19 +45,19 @@ temp_flight1 <- data.table::copy(flight)#[cd_di == "0" | cd_di == "4" | cd_di ==
 data.table::setkeyv(temp_flight1,c("nr_ano_referencia","dt_referencia"))
 
 #
-# PER PASSANGER ANALYSIS
+# PER PASSANGER ANALYSIS----
 #
 temp_flight2 <- data.table::copy(flight)[cd_di == "0" | cd_di == "4" | cd_di == "C",]
 temp_flight2 <- temp_flight2[,lapply(.SD, sum, na.rm=TRUE), 
-                                               .SDcols = c('lt_combustivel',
-                                                           'emi_co2',
-                                                           'nr_passag_total'), 
-                                               by = .(dt_referencia,nr_ano_referencia)]
+                             .SDcols = c('lt_combustivel',
+                                         'emi_co2',
+                                         'nr_passag_total'), 
+                             by = .(dt_referencia,nr_ano_referencia)]
 temp_flight2[,emi_co2_capita := emi_co2 / nr_passag_total]
 temp_flight2 <- temp_flight2[,.(dt_referencia,emi_co2_capita)]
 
 #
-# TOTAL CO2 ANALYSIS
+# TOTAL CO2 ANALYSIS------
 # 
 
 temp_flight3 <- data.table::copy(flight)
@@ -74,7 +73,7 @@ temp_flight3[,nr_ano_referencia := as.integer(nr_ano_referencia)]
 temp_flight4 <- temp_flight3[temp_flight2,on = "dt_referencia",
                              emi_co2_capita := i.emi_co2_capita]
 
-# add moving average
+## add moving average
 
 temp_flight4[,`:=`(frollmean2 = data.table::frollmean(emi_co2,n = 2, na.rm=TRUE),
                    frollmean3 = data.table::frollmean(emi_co2,n = 3, na.rm=TRUE),
@@ -85,7 +84,7 @@ temp_flight4[,`:=`(frollmean2 = data.table::frollmean(emi_co2,n = 2, na.rm=TRUE)
 
 # add month name to the plot
 
-month_name_aux <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dez","Jan")
+month_name_aux <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan")
 dia_mes_aux <- c(paste0("01/0",1:9),paste0("01/",10:12),"31/12")
 for(i in seq_along(dia_mes_aux)) temp_flight4[dia_mes %like% dia_mes_aux[i],month_name := month_name_aux[i]]
 
@@ -167,7 +166,7 @@ fig5a/fig5a
 
 lotacao <- data.table::copy(flight)[cd_di == "0" | cd_di == "4" | cd_di == "C",]
 lotacao <- lotacao[data.table::between(dt_referencia,pre_covid_period[1],
-                                                        pos_covid_period[2]),]
+                                       pos_covid_period[2]),]
 lotacao[nr_passag_total == "Inf" | nr_passag_total == "-Inf",nr_passag_total := NA]
 lotacao <- lotacao[!is.na(nr_passag_total),]
 
@@ -183,6 +182,8 @@ lotacao <- lotacao[,`:=`(min = lapply(.SD,min,na.rm = TRUE),
                          N = .N),
                    by = ds_modelo,.SDcols = "nr_passag_total"]
 lotacao <- lotacao[,.SD[1],by = ds_modelo][,.(ds_modelo,min,q1,median,q3,max,N)]
+
+lotacao
 lotacao$ds_modelo
 
 models_representative <- lotacao[max > 10,]$ds_modelo
@@ -195,7 +196,7 @@ models_representative <- lotacao[max > 10,]$ds_modelo
 
 
 
-units::install_symbolic_unit("passanger")
+units::install_unit("passanger")
 temp_flight <- data.table::copy(flight)[cd_di == "0" | cd_di == "4" | cd_di == "C",]
 
 temp_flight[,lt_combustivel := units::set_units(lt_combustivel,"liter")]
@@ -321,12 +322,13 @@ fig5b <-
        x = "Average distance (km)",
        shape = "Period",
        y = "Average fuel efficiency (pax-km/L)") + 
-  geom_segment(data = my_temp_flight, aes(x = as.numeric(x_ini),
-                                          y = as.numeric(y_ini),
-                                          xend = as.numeric(x_end),
-                                          yend = as.numeric(y_end),
-                                          colour = as.factor(capacity_pro)),
-               arrow=arrow(length = unit(0.10, "inches"),type = 'open')) + 
+  geom_segment(data = my_temp_flight, aes(x = as.numeric(x_ini)
+                                          ,y = as.numeric(y_ini)
+                                          ,xend = as.numeric(x_end)
+                                          ,yend = as.numeric(y_end)
+                                          ,colour = as.factor(capacity_pro))
+               ,arrow=arrow(length = unit(0.10, "inches")
+                            ,type = 'open')) + 
   theme_bw() + 
   theme(legend.position = "bottom") +
   guides(color = guide_legend(title.position = "top",
@@ -343,7 +345,7 @@ fig5 <- (fig5a / fig5b)  +
   plot_annotation(tag_levels = 'A',
                   #title = expression("CO"[2]*" emissions and fuel efficiency"),
                   #subtitle = "Variation between pre and post COVID outbreak"
-                  )
+  )
 
 fig5
 ggsave("figures/fig5-emissions.pdf",plot = fig5, width = 27.5, height = 27.5, units = "cm",
@@ -446,8 +448,8 @@ View(dt[,c(1,12:17)])
 # efficiency analysis ------
 #
 
-temp_flight <- data.table::copy(flight)
-temp_flight[,fuel_efficiency := nr_passag_total * km_distancia / lt_combustivel]
+temp_flight <- data.table::copy(flight)+
+  temp_flight[,fuel_efficiency := nr_passag_total * km_distancia / lt_combustivel]
 ds_models <- temp_flight[,.N, by = . (ds_modelo)][order(N,decreasing = TRUE),]
 for(i in 1:15){ 
   # i = 1
@@ -505,3 +507,6 @@ for(i in 1:15){
   ggsave(filename,plot = pf, width = 21.4,height = 22,
          units = "cm",scale = 0.9)
 }
+
+dt[,percent_ppf := round(ppf_after/ppf_before -1,2)]
+dt[,.(ppf_before,ppf_after,percent_ppf)]
