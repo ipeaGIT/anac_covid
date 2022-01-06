@@ -1,6 +1,7 @@
 source("../../git_kaue/acesso_oport/R/fun/setup.R")
+Sys.setlocale("LC_TIME", "English")
 library(scales)
-
+library(patchwork)
 
 
 # prepare data ---------------------------------------------------------------------
@@ -101,8 +102,8 @@ plot1_a <- ggplot() +
 #   scale_y_log10(name="Number of Passengers (log)", labels = comma, limit=c(100,NA),oob=squish)
 
 
-ggsave('./figures/fig1-daily_passengers_log.png', dpi=300, width = 16, units = 'cm')
-ggsave('./figures/fig1-daily_passengers_log.pdf', dpi=300, width = 16, units = 'cm')
+# ggsave('./figures/fig1-daily_passengers_log.png', dpi=300, width = 16, units = 'cm')
+# ggsave('./figures/fig1-daily_passengers_log.pdf', dpi=300, width = 16, units = 'cm')
 
 
 # percent drop
@@ -323,51 +324,50 @@ odmatrix_passdist_filter_agreg <- fread("../../data/anac_covid/air_odmatrix_filt
 brazil_sf <- geobr::read_country()
 states_sf <- geobr::read_state()
 
-# dark theme
-ggplot() + 
-  geom_sf(data= sf::st_transform(states_sf, crs = 4326), fill="gray0", color = "grey10") +
-  geom_sf(data= sf::st_transform(brazil_sf, crs = 4326), fill=NA, color ="grey50") +
-  # geom_point(data = top_20_od, aes(x = lon_from, y = lat_from)) +
-  geom_curve(data = odmatrix_passdist_filter_agreg, 
-             aes(x = lon_from, y = lat_from, xend = lon_to, yend = lat_to, 
-                 color = log10(total_pass), lwd = total_pass), alpha = 0.3,
-             curvature = -0.1, arrow = arrow(length = unit(0.01, "npc"))) +
-  # scale_alpha_continuous(range = c(0.1, 0.8))+
-  # scale_color_gradient(low = "blue", high = "white")+
-  # scale_colour_viridis_c(option = "plasma", name="Passenger x Km", direction = 1)+
-  # scale_color_distiller(palette = 'Reds', direction = 1)+
-  
-  scale_color_distiller(palette ='Blues', breaks = scales::extended_breaks(n = 6))+
-  scale_size_continuous(range = c(0.1, 3), breaks = scales::extended_breaks(n = 6))+
-  coord_sf()+
-  facet_wrap(~period)+
-  theme_void()+
-  labs(size = "Average Daily Passenger Flow (log10)")+
-  theme(panel.background = element_rect(fill = "black", colour = "black"),
-        legend.position = "bottom",
-        legend.box = 'vertical',
-        legend.key.width = unit(3, "lines"),
-        legend.spacing.x = unit(1, "lines"),
-        strip.text.x = element_text(size = 12, vjust = 1),
-        legend.margin = margin(0, 0, 0, 0, unit = "cm")
-        # legend.key.size = unit(2, "cm"),
-        # legend.key.width = unit(1, "cm")
-        # legend.background = element_rect(colour = "black", fill = "grey85", size = 0.5, linetype = 'dashed')
-  )+
-  guides(size = guide_legend(title.position = "top", title.hjust = 0.5, keywidth = 2, keyheight = 0.1,
-                             nrow = 1, order = 1, label.position = 'bottom', label = FALSE),
-         colour = guide_colourbar(title.position = "top", title.hjust = 0.5, keywidth = 2, 
-                                  order = 2, title = NULL))
-
-
-ggsave('./figures/3-dark_map.png', dpi=300, width = 16, units = 'cm')
-ggsave('./figures/3-dark_map.pdf', width = 16, height = 12, units = 'cm')
+# # dark theme
+# ggplot() + 
+#   geom_sf(data= sf::st_transform(states_sf, crs = 4326), fill="gray0", color = "grey10") +
+#   geom_sf(data= sf::st_transform(brazil_sf, crs = 4326), fill=NA, color ="grey50") +
+#   # geom_point(data = top_20_od, aes(x = lon_from, y = lat_from)) +
+#   geom_curve(data = odmatrix_passdist_filter_agreg, 
+#              aes(x = lon_from, y = lat_from, xend = lon_to, yend = lat_to, 
+#                  color = log10(total_pass), lwd = total_pass), alpha = 0.3,
+#              curvature = -0.1, arrow = arrow(length = unit(0.01, "npc"))) +
+#   # scale_alpha_continuous(range = c(0.1, 0.8))+
+#   # scale_color_gradient(low = "blue", high = "white")+
+#   # scale_colour_viridis_c(option = "plasma", name="Passenger x Km", direction = 1)+
+#   # scale_color_distiller(palette = 'Reds', direction = 1)+
+#   
+#   scale_color_distiller(palette ='Blues', breaks = scales::extended_breaks(n = 6))+
+#   scale_size_continuous(range = c(0.1, 3), breaks = scales::extended_breaks(n = 6))+
+#   coord_sf()+
+#   facet_wrap(~period)+
+#   theme_void()+
+#   labs(size = "Average Daily Passenger Flow (log10)")+
+#   theme(panel.background = element_rect(fill = "black", colour = "black"),
+#         legend.position = "bottom",
+#         legend.box = 'vertical',
+#         legend.key.width = unit(3, "lines"),
+#         legend.spacing.x = unit(1, "lines"),
+#         strip.text.x = element_text(size = 12, vjust = 1),
+#         legend.margin = margin(0, 0, 0, 0, unit = "cm")
+#         # legend.key.size = unit(2, "cm"),
+#         # legend.key.width = unit(1, "cm")
+#         # legend.background = element_rect(colour = "black", fill = "grey85", size = 0.5, linetype = 'dashed')
+#   )+
+#   guides(size = guide_legend(title.position = "top", title.hjust = 0.5, keywidth = 2, keyheight = 0.1,
+#                              nrow = 1, order = 1, label.position = 'bottom', label = FALSE),
+#          colour = guide_colourbar(title.position = "top", title.hjust = 0.5, keywidth = 2, 
+#                                   order = 2, title = NULL))
+# 
+# 
+# ggsave('./figures/3-dark_map.png', dpi=300, width = 16, units = 'cm')
+# ggsave('./figures/3-dark_map.pdf', width = 16, height = 12, units = 'cm')
 
 
 # aa <- subset(odmatrix_passdist_filter_agreg, total_pass >500) 
 
-## light theme
-fi2_map <- ggplot() + 
+fig2_a <- ggplot() + 
   geom_sf(data= sf::st_transform(states_sf, crs = 4326), fill="gray90", color = "white") +
   geom_sf(data= sf::st_transform(brazil_sf, crs = 4326), fill=NA, color ="grey50") +
   # geom_point(data = top_20_od, aes(x = lon_from, y = lat_from)) +
@@ -383,25 +383,32 @@ fi2_map <- ggplot() +
   # scale_color_distiller(palette = 'Reds', direction = 1)+
   coord_sf()+
   theme_void() +
-  labs(size = "Average Daily Passenger Flow (log10)")+
+  labs(size = "Average Daily\n Passenger Flow (log10)")+
   scale_fill_continuous(guide = "colorbar", breaks = scales::extended_breaks(n = 6)) + 
   # scale_color_distiller(palette ='Blues', breaks = scales::extended_breaks(n = 6))+
-  theme(legend.position="bottom",
-        strip.text.x = element_text(size = 12, vjust = 1),
+  theme(legend.position= c(0.5, 0.1),
+        legend.title = element_text(size = 6),
+        legend.text = element_text(size = 6),
+        strip.text.x = element_text(size = 8, vjust = 1),
         legend.box = 'vertical',
-        legend.key.height = unit(0.7, "lines"),
-        legend.key.width = unit(3, "lines"),
-        legend.spacing.x = unit(1, "lines"),
-        legend.margin = margin(0, 0, 0, 0, unit = "cm"))+
-  guides(size = guide_legend(title.position = "top", title.hjust = 0.5, keywidth = 2, keyheight = 0.1,
+        # legend.key.height = unit(0.5, "lines"),
+        # legend.key.width = unit(0.5, "lines"),
+        legend.spacing.x = unit(0.01, "lines"),
+        legend.margin = margin(-0.5, 0, 0, 0, unit = "cm"),
+        panel.spacing = unit(2, "lines"))+
+  guides(size = guide_legend(title.position = "top", title.hjust = 0.5, 
+                             # keywidth = 1, keyheight = 0.005,
                              nrow = 1, order = 1, label.position = 'bottom', label = FALSE),
-         colour = guide_colourbar(title.position = "top", title.hjust = 0.5, keywidth = 2, keyheight = 0.005,
+         colour = guide_colourbar(title.hjust = 0.5, 
+                                  # keywidth = 1, 
+                                  # keyheight = 0.001,
+                                  barheight = 0.2,
+                                  direction = "horizontal",
                                   order = 2, title = NULL))
 
 
-
-ggsave('./figures/3-light_map.png', dpi=300, width = 16, units = 'cm')
-ggsave('./figures/3-light_map.pdf', dpi=300, width = 16, height = 12, units = 'cm')
+# ggsave('./figures/3-light_map.png', dpi=300, width = 16, units = 'cm')
+# ggsave('./figures/3-light_map.pdf', dpi=300, width = 16, height = 12, units = 'cm')
 
 
 
@@ -433,7 +440,7 @@ odmatrix_passdist_filter_agreg_dia <- data_brazil_dists_first[between(date, as.D
 
 # CHART mean_km_by_passengers
 
-fig2_graph_b <- ggplot()+
+fig2_c <- ggplot()+
   geom_line(data = odmatrix_passdist_filter_agreg_dia,
             aes(x = date, y = total_passdist_weighted), color='#008080', size = .8, show.legend = FALSE) +
   # geom_vline(data = bb, color='gray60', size=1.8, alpha=.4, aes(xintercept = as.Date(as.Date("2020-03-15"))))+
@@ -445,7 +452,7 @@ fig2_graph_b <- ggplot()+
                                                  as.Date("2020-04-01"),
                                                  as.Date("2020-04-30")))+
   labs(y='Daily average of Kilometers\n per passenger (log)', x='') +
-  hrbrthemes::theme_ipsum(plot_margin = margin(1, 1, 1, 1),
+  hrbrthemes::theme_ipsum(plot_margin = margin(3, 1, 1, 1),
                           axis_text_size = 7)+
   
   theme(panel.grid.major.y = element_blank(),
@@ -453,8 +460,8 @@ fig2_graph_b <- ggplot()+
         axis.line.y = element_line(colour = "black"),
         axis.ticks.y = element_line(colour = "black"))
 
-ggsave('./figures/avg_kilometers_per_passenger.pdf', dpi=300, width = 16, units = 'cm')
-ggsave('./figures/avg_kilometers_per_passenger.png', dpi=300, width = 16, units = 'cm')
+# ggsave('./figures/avg_kilometers_per_passenger.pdf', dpi=300, width = 16, units = 'cm')
+# ggsave('./figures/avg_kilometers_per_passenger.png', dpi=300, width = 16, units = 'cm')
 
 
 # calculate FOLD CHANGE
@@ -493,17 +500,17 @@ a2 <- a %>%
   filter(stringr::str_detect(tipo, "fold"))
 
 
-plot3_a <- a2 %>%
+fig2_b <- a2 %>%
   filter(stringr::str_detect(tipo, "1")) %>%
   mutate(tipo = factor(tipo, levels = c("fold_change_pass1", "fold_change_flights1"),
                        labels = c("Passengers", "Flights"))) %>%
   ggplot()+
-  geom_col(aes(dist_cat, y = 1/value, fill = tipo), position = "dodge")+
+  geom_col(aes(dist_cat, y = -1/value, fill = tipo), position = "dodge")+
   scale_fill_brewer(palette = "Dark2")+
   labs(fill = "Type Fold Change",
        x = "Flight distance (km)",
        y = "Fold Change (Before/After)")+
-  hrbrthemes::theme_ipsum(grid = "Y", plot_margin = margin(1, 1, 1, 1),
+  hrbrthemes::theme_ipsum(grid = "Y", plot_margin = margin(3, 1, 1, 1),
                           axis_text_size = 7)+
   theme(legend.position = "bottom",
         legend.title = element_text(size = 8),
@@ -511,6 +518,8 @@ plot3_a <- a2 %>%
 
 
 # assembly plots
-plot3 <- plot3_a + plot3_b + plot_layout(ncol = 2) + plot_annotation(tag_levels = 'A')
+fig2 <- (fig2_a) /  (fig2_b | fig2_c) + 
+  plot_annotation(tag_levels = 'A')
 
-ggsave('./figures/fig3-average_distance.png', dpi=300, width = 16, height = 10, units = 'cm')
+ggsave(plot = fig2, filename = './figures/fig2-average_distance.png', 
+       dpi=300, width = 16, height = 12, units = 'cm')
