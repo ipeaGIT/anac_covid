@@ -30,7 +30,7 @@ tail(series_emis)
 
 my_x_breaks <- c(paste0("2020-0",seq(2,9,by = 2),"-01"),
                  paste0("2020-",seq(10,12,by = 2),"-01")) %>% as.Date()
-my_x_labels <- c("fev","apr","jun","aug","oct","dec")
+my_x_labels <- c("Feb","Apr","Jun","Aug","Oct","Dec")
 
 
 ############ plot travel demand -----------------------------
@@ -217,10 +217,10 @@ plot <-
   plot_annotation(tag_levels = 'A')
 
 plot
-setwd("L:/Proj_acess_oport/git_jbazzo/anac_covid")
-ggsave(plot, filename = './figures/figure2_impact.png', dpi=300,
+setwd("L:/Proj_acess_oport/git_kaue/anac_covid")
+ggsave(plot, filename = './figures/fig2-impact.png', dpi=300,
        width = 26, height = 15, units = 'cm')
-ggsave(plot, filename = './figures/figure2_impact.pdf', dpi=300,
+ggsave(plot, filename = './figures/fig2-impact.pdf', dpi=300,
        width = 26, height = 15, units = 'cm')
 
 

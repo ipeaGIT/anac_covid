@@ -518,8 +518,8 @@ fig2_b <- a2 %>%
 
 
 # assembly plots
-fig2 <- (fig2_a) /  (fig2_b | fig2_c) + 
+fig3 <- (fig2_a) /  (fig2_b | fig2_c) + 
   plot_annotation(tag_levels = 'A')
 
-ggsave(plot = fig2, filename = './figures/fig2-average_distance.png', 
+ggsave(plot = fig3, filename = './figures/fig3-average_distance.png', 
        dpi=300, width = 16, height = 12, units = 'cm')
