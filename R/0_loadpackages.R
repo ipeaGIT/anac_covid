@@ -15,6 +15,7 @@ list.of.packages <-
   c(
     # download data
     "downloader"
+    , "flightsbr"
     
     # Read data 
     , "readr"

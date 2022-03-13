@@ -11,9 +11,8 @@ options(scipen=999)
 
 # TRAFFIC FLOW BETWEEN MUNICIPALITIES ----------------------------------------------
 
-files <- list.files(path = '../../data-raw/ANAC/', pattern = '-01|-02|-03|-04|-05|-06|-07|-08|-09|-10|-11|-12', full.names = T)
-files <- grep(pattern = 'combinada', x = files, value = T)
-combinada <- lapply(files, fread) %>% rbindlist()
+file_combinada <- list.files(path = './data-raw/ANAC/', pattern = 'combinada', full.names = T)
+combinada <- fread(file = file_combinada)
 
 data_cols <- combinada %>% select(id_combinada, 
                                   nr_voo, sg_empresa_icao,
@@ -44,7 +43,7 @@ data_cols[, day := lubridate::day(date)]
 data_cols[, day_week := lubridate::wday(date, label = TRUE)]
 
 # save it
-write_rds(data_cols, "../../data/anac_covid/combinada_cols.rds")
+write_rds(data_cols, "./data/anac_covid/combinada_cols.rds")
 
 
 
@@ -80,6 +79,9 @@ data_brazil[, day_week := lubridate::wday(date, label = TRUE)]
 
 
 # open dists - all cities
+airports <- flightsbr::read_airports(type = 'all')
+
+# calculate distances between airports
 dists <- fread("../../data/anac_covid/airports_dist-df.csv")
 
 # bring distance between origin and destination - only first cases

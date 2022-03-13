@@ -9,14 +9,10 @@ source("R/0_loadpackages.R",local = TRUE)
 
 
 #### read raw data   -------------------------------
-anac_files <- list.files(path = "../../data-raw/ANAC/",pattern = 'basica',full.names = TRUE)
-anac_files <- anac_files[anac_files %like% "2020" | anac_files %like% "2019"]
-rm(flight)
-flight_raw <- future.apply::future_lapply(anac_files,function(i){
-  message(i)
-  a <- data.table::fread(i,dec=",",encoding = 'Latin-1')
-  return(a)
-}) %>% data.table::rbindlist()
+file_basica <- list.files(path = './data-raw/ANAC/', pattern = 'basica', full.names = T)
+flight_raw <- fread(file = file_basica)
+
+flight_raw <- subset(flight_raw, nr_ano_referencia %in% c(2019, 2020))
 
 
 #
